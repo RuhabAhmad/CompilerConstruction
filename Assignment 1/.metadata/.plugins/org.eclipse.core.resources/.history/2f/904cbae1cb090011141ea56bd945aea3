@@ -1,0 +1,148 @@
+package symboltable;
+import java.util.*;
+import tokens.Token;
+import tokens.TokenType;
+import errorhandler.ErrorHandler;
+import scanner.ManualScanner;
+
+/**
+ * SymbolTable Class - Stores information about identifiers
+ * CS4031 - Compiler Construction Assignment 01
+ */
+public class SymbolTable {
+    
+    /**
+     * Inner class to represent a symbol entry
+     */
+    public static class SymbolEntry {
+        private final String name;
+        private String type;
+        private final int firstOccurrence;  // Line number of first occurrence
+        private int frequency;
+        
+        public SymbolEntry(String name, int firstOccurrence) {
+            this.name = name;
+            this.type = "IDENTIFIER";  // Default type
+            this.firstOccurrence = firstOccurrence;
+            this.frequency = 1;
+        }
+        
+        public void incrementFrequency() {
+            this.frequency++;
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public String getType() {
+            return type;
+        }
+        
+        public void setType(String type) {
+            this.type = type;
+        }
+        
+        public int getFirstOccurrence() {
+            return firstOccurrence;
+        }
+        
+        public int getFrequency() {
+            return frequency;
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("%-25s %-15s Line: %-5d Frequency: %d", 
+                               name, type, firstOccurrence, frequency);
+        }
+    }
+    
+    private final Map<String, SymbolEntry> table;
+    
+    /**
+     * Constructor
+     */
+    public SymbolTable() {
+        this.table = new LinkedHashMap<>();  // Preserve insertion order
+    }
+    
+    /**
+     * Add or update an identifier in the symbol table
+     * @param name The identifier name
+     * @param line Line number where identifier appears
+     */
+    public void addIdentifier(String name, int line) {
+        if (table.containsKey(name)) {
+            // Identifier already exists, increment frequency
+            table.get(name).incrementFrequency();
+        } else {
+            // New identifier
+            table.put(name, new SymbolEntry(name, line));
+        }
+    }
+    
+    /**
+     * Check if an identifier exists in the symbol table
+     * @param name The identifier name
+     * @return true if identifier exists, false otherwise
+     */
+    public boolean contains(String name) {
+        return table.containsKey(name);
+    }
+    
+    /**
+     * Get a symbol entry
+     * @param name The identifier name
+     * @return The SymbolEntry or null if not found
+     */
+    public SymbolEntry getEntry(String name) {
+        return table.get(name);
+    }
+    
+    /**
+     * Get all entries in the symbol table
+     * @return Collection of all symbol entries
+     */
+    public Collection<SymbolEntry> getAllEntries() {
+        return table.values();
+    }
+    
+    /**
+     * Get the total number of unique identifiers
+     * @return Number of unique identifiers
+     */
+    public int size() {
+        return table.size();
+    }
+    
+    /**
+     * Print the symbol table in a formatted way
+     */
+    public void print() {
+        System.out.println("\n╔════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                          SYMBOL TABLE                                  ║");
+        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ %-25s %-15s %-15s %-10s ║%n", "Identifier", "Type", "First Occurrence", "Frequency");
+        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+        
+        if (table.isEmpty()) {
+            System.out.println("║ No identifiers found                                                   ║");
+        } else {
+            for (SymbolEntry entry : table.values()) {
+                System.out.printf("║ %s ║%n", entry.toString());
+            }
+        }
+        
+        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ Total Unique Identifiers: %-48d ║%n", table.size());
+        System.out.println("╚════════════════════════════════════════════════════════════════════════╝\n");
+    }
+    
+    /**
+     * Clear the symbol table
+     */
+    public void clear() {
+        table.clear();
+    }
+}

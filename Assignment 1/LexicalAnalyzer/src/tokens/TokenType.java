@@ -1,8 +1,23 @@
 package tokens;
 
+/**
+ * TokenType Enum - Defines all token categories for the Nexus language
+ * CS4031 - Compiler Construction Assignment 01
+ */
 public enum TokenType {
-    // Keywords
-    KEYWORD,
+    // Keywords (12 total)
+    KEYWORD_START,
+    KEYWORD_FINISH,
+    KEYWORD_LOOP,
+    KEYWORD_CONDITION,
+    KEYWORD_DECLARE,
+    KEYWORD_OUTPUT,
+    KEYWORD_INPUT,
+    KEYWORD_FUNCTION,
+    KEYWORD_RETURN,
+    KEYWORD_BREAK,
+    KEYWORD_CONTINUE,
+    KEYWORD_ELSE,
     
     // Identifiers
     IDENTIFIER,
@@ -14,27 +29,55 @@ public enum TokenType {
     CHAR_LITERAL,
     BOOLEAN_LITERAL,
     
-    // Operators
-    ARITHMETIC_OP,
-    RELATIONAL_OP,
-    LOGICAL_OP,
-    ASSIGNMENT_OP,
-    INCREMENT_OP,
-    DECREMENT_OP,
+    // Arithmetic Operators
+    OP_PLUS,           // +
+    OP_MINUS,          // -
+    OP_MULTIPLY,       // *
+    OP_DIVIDE,         // /
+    OP_MODULO,         // %
+    OP_EXPONENT,       // **
+    
+    // Relational Operators
+    OP_EQUAL,          // ==
+    OP_NOT_EQUAL,      // !=
+    OP_LESS,           // <
+    OP_LESS_EQUAL,     // <=
+    OP_GREATER,        // >
+    OP_GREATER_EQUAL,  // >=
+    
+    // Logical Operators
+    OP_AND,            // &&
+    OP_OR,             // ||
+    OP_NOT,            // !
+    
+    // Assignment Operators
+    OP_ASSIGN,         // =
+    OP_PLUS_ASSIGN,    // +=
+    OP_MINUS_ASSIGN,   // -=
+    OP_MULT_ASSIGN,    // *=
+    OP_DIV_ASSIGN,     // /=
+    
+    // Increment/Decrement
+    OP_INCREMENT,      // ++
+    OP_DECREMENT,      // --
     
     // Punctuators
-    PUNCTUATOR,
+    PUNCT_LPAREN,      // (
+    PUNCT_RPAREN,      // )
+    PUNCT_LBRACE,      // {
+    PUNCT_RBRACE,      // }
+    PUNCT_LBRACKET,    // [
+    PUNCT_RBRACKET,    // ]
+    PUNCT_COMMA,       // ,
+    PUNCT_SEMICOLON,   // ;
+    PUNCT_COLON,       // :
     
-    // Comments (tracked but not output)
-    SINGLE_LINE_COMMENT,
-    MULTI_LINE_COMMENT,
+    // Comments
+    COMMENT_SINGLE,
+    COMMENT_MULTI,
     
-    // Whitespace (tracked but not output)
+    // Special
     WHITESPACE,
-    
-    // Error
-    ERROR,
-    
-    // End of file
-    EOF
+    EOF,
+    ERROR
 }

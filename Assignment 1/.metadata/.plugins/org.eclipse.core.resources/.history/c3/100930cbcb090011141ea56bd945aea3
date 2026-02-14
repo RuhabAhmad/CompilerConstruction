@@ -1,0 +1,205 @@
+package errorhandler;
+import java.util.*;
+import tokens.Token;
+import tokens.TokenType;
+import symboltable.SymbolTable;
+import scanner.ManualScanner;
+
+/**
+ * ErrorHandler Class - Detects and reports lexical errors
+ * CS4031 - Compiler Construction Assignment 01
+ */
+public class ErrorHandler {
+    
+    /**
+     * Inner class to represent a lexical error
+     */
+    public static class LexicalError {
+        private final String type;
+        private final int line;
+        private final int column;
+        private final String lexeme;
+        private final String reason;
+        
+        public LexicalError(String type, int line, int column, String lexeme, String reason) {
+            this.type = type;
+            this.line = line;
+            this.column = column;
+            this.lexeme = lexeme;
+            this.reason = reason;
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("ERROR [%s] at Line: %d, Col: %d - Lexeme: \"%s\" - %s", 
+                               type, line, column, lexeme, reason);
+        }
+        
+        public String getType() {
+            return type;
+        }
+        
+        public int getLine() {
+            return line;
+        }
+        
+        public int getColumn() {
+            return column;
+        }
+        
+        public String getLexeme() {
+            return lexeme;
+        }
+        
+        public String getReason() {
+            return reason;
+        }
+    }
+    
+    private final List<LexicalError> errors;
+    
+    /**
+     * Constructor
+     */
+    public ErrorHandler() {
+        this.errors = new ArrayList<>();
+    }
+    
+    /**
+     * Report an invalid character error
+     */
+    public void reportInvalidCharacter(int line, int column, char ch) {
+        String lexeme = String.valueOf(ch);
+        String reason = String.format("Invalid character '%c' (ASCII: %d)", ch, (int)ch);
+        errors.add(new LexicalError("INVALID_CHARACTER", line, column, lexeme, reason));
+    }
+    
+    /**
+     * Report a malformed integer literal error
+     */
+    public void reportMalformedInteger(int line, int column, String lexeme, String reason) {
+        errors.add(new LexicalError("MALFORMED_INTEGER", line, column, lexeme, reason));
+    }
+    
+    /**
+     * Report a malformed float literal error
+     */
+    public void reportMalformedFloat(int line, int column, String lexeme, String reason) {
+        errors.add(new LexicalError("MALFORMED_FLOAT", line, column, lexeme, reason));
+    }
+    
+    /**
+     * Report an unterminated string error
+     */
+    public void reportUnterminatedString(int line, int column, String lexeme) {
+        errors.add(new LexicalError("UNTERMINATED_STRING", line, column, lexeme, 
+                  "String literal not properly terminated"));
+    }
+    
+    /**
+     * Report an unterminated character literal error
+     */
+    public void reportUnterminatedChar(int line, int column, String lexeme) {
+        errors.add(new LexicalError("UNTERMINATED_CHAR", line, column, lexeme, 
+                  "Character literal not properly terminated"));
+    }
+    
+    /**
+     * Report an invalid identifier error
+     */
+    public void reportInvalidIdentifier(int line, int column, String lexeme, String reason) {
+        errors.add(new LexicalError("INVALID_IDENTIFIER", line, column, lexeme, reason));
+    }
+    
+    /**
+     * Report an unclosed multi-line comment error
+     */
+    public void reportUnclosedComment(int line, int column, String lexeme) {
+        errors.add(new LexicalError("UNCLOSED_COMMENT", line, column, lexeme, 
+                  "Multi-line comment not properly closed"));
+    }
+    
+    /**
+     * Report an invalid escape sequence error
+     */
+    public void reportInvalidEscape(int line, int column, String lexeme, String escape) {
+        errors.add(new LexicalError("INVALID_ESCAPE", line, column, lexeme, 
+                  String.format("Invalid escape sequence '%s'", escape)));
+    }
+    
+    /**
+     * Report a generic lexical error
+     */
+    public void reportError(String type, int line, int column, String lexeme, String reason) {
+        errors.add(new LexicalError(type, line, column, lexeme, reason));
+    }
+    
+    /**
+     * Check if there are any errors
+     */
+    public boolean hasErrors() {
+        return !errors.isEmpty();
+    }
+    
+    /**
+     * Get the number of errors
+     */
+    public int getErrorCount() {
+        return errors.size();
+    }
+    
+    /**
+     * Get all errors
+     */
+    public List<LexicalError> getErrors() {
+        return new ArrayList<>(errors);
+    }
+    
+    /**
+     * Print all errors
+     */
+    public void printErrors() {
+        if (errors.isEmpty()) {
+            System.out.println("\n✓ No lexical errors detected.");
+            return;
+        }
+        
+        System.out.println("\n╔════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                        LEXICAL ERRORS DETECTED                         ║");
+        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+        
+        for (int i = 0; i < errors.size(); i++) {
+            System.out.printf("║ %2d. %-67s║%n", i + 1, 
+                            truncate(errors.get(i).toString(), 67));
+            // If error message is long, print additional lines
+            String errorStr = errors.get(i).toString();
+            if (errorStr.length() > 67) {
+                for (int j = 67; j < errorStr.length(); j += 67) {
+                    int end = Math.min(j + 67, errorStr.length());
+                    System.out.printf("║     %-67s║%n", truncate(errorStr.substring(j, end), 67));
+                }
+            }
+        }
+        
+        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ Total Errors: %-59d ║%n", errors.size());
+        System.out.println("╚════════════════════════════════════════════════════════════════════════╝\n");
+    }
+    
+    /**
+     * Truncate a string to a maximum length
+     */
+    private String truncate(String str, int maxLen) {
+        if (str.length() <= maxLen) {
+            return str;
+        }
+        return str.substring(0, maxLen - 3) + "...";
+    }
+    
+    /**
+     * Clear all errors
+     */
+    public void clear() {
+        errors.clear();
+    }
+}
