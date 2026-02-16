@@ -1,23 +1,17 @@
 package tokens;
 
 /**
- * TokenType Enum - Defines all token categories for the Nexus language
- * CS4031 - Compiler Construction Assignment 01
+ * TokenType Enumeration
+ * Defines all token types recognized by the NEXUS lexical analyzer
+ * 
+ * @author Ruhab (23i-0559), Hasan (23i-0698)
+ * @course CS4031 - Compiler Construction
+ * @assignment Assignment 1 - Lexical Analyzer
  */
+
 public enum TokenType {
-    // Keywords (12 total)
-    KEYWORD_START,
-    KEYWORD_FINISH,
-    KEYWORD_LOOP,
-    KEYWORD_CONDITION,
-    KEYWORD_DECLARE,
-    KEYWORD_OUTPUT,
-    KEYWORD_INPUT,
-    KEYWORD_FUNCTION,
-    KEYWORD_RETURN,
-    KEYWORD_BREAK,
-    KEYWORD_CONTINUE,
-    KEYWORD_ELSE,
+    // Keywords
+    KEYWORD,
     
     // Identifiers
     IDENTIFIER,
@@ -29,55 +23,27 @@ public enum TokenType {
     CHAR_LITERAL,
     BOOLEAN_LITERAL,
     
-    // Arithmetic Operators
-    OP_PLUS,           // +
-    OP_MINUS,          // -
-    OP_MULTIPLY,       // *
-    OP_DIVIDE,         // /
-    OP_MODULO,         // %
-    OP_EXPONENT,       // **
-    
-    // Relational Operators
-    OP_EQUAL,          // ==
-    OP_NOT_EQUAL,      // !=
-    OP_LESS,           // <
-    OP_LESS_EQUAL,     // <=
-    OP_GREATER,        // >
-    OP_GREATER_EQUAL,  // >=
-    
-    // Logical Operators
-    OP_AND,            // &&
-    OP_OR,             // ||
-    OP_NOT,            // !
-    
-    // Assignment Operators
-    OP_ASSIGN,         // =
-    OP_PLUS_ASSIGN,    // +=
-    OP_MINUS_ASSIGN,   // -=
-    OP_MULT_ASSIGN,    // *=
-    OP_DIV_ASSIGN,     // /=
-    
-    // Increment/Decrement
-    OP_INCREMENT,      // ++
-    OP_DECREMENT,      // --
+    // Operators
+    ARITHMETIC_OP,      // +, -, *, /, %, **
+    RELATIONAL_OP,      // ==, !=, <, >, <=, >=
+    LOGICAL_OP,         // &&, ||, !
+    ASSIGNMENT_OP,      // =, +=, -=, *=, /=
+    INCREMENT_OP,       // ++
+    DECREMENT_OP,       // --
     
     // Punctuators
-    PUNCT_LPAREN,      // (
-    PUNCT_RPAREN,      // )
-    PUNCT_LBRACE,      // {
-    PUNCT_RBRACE,      // }
-    PUNCT_LBRACKET,    // [
-    PUNCT_RBRACKET,    // ]
-    PUNCT_COMMA,       // ,
-    PUNCT_SEMICOLON,   // ;
-    PUNCT_COLON,       // :
+    PUNCTUATOR,         // ( ) { } [ ] , ; :
     
-    // Comments
-    COMMENT_SINGLE,
-    COMMENT_MULTI,
+    // Comments (for tracking purposes)
+    SINGLE_LINE_COMMENT,
+    MULTI_LINE_COMMENT,
     
-    // Special
+    // Whitespace
     WHITESPACE,
-    EOF,
-    ERROR
+    
+    // Error
+    ERROR,
+    
+    // End of file
+    EOF
 }

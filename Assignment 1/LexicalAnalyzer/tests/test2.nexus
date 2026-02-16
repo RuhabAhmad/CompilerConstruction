@@ -1,0 +1,131 @@
+## Test File 2: Complex Expressions
+## Testing complex mathematical expressions and nested structures
+
+start
+    ## Complex mathematical expressions
+    declare X;
+    declare Y;
+    declare Z;
+    declare Result;
+    
+    X = 10;
+    Y = 20;
+    Z = 30;
+    
+    ## Complex arithmetic with operator precedence
+    Result = X + Y * Z;
+    Result = (X + Y) * Z;
+    Result = X ** 2 + Y ** 2;
+    Result = (X + Y) / (Z - X);
+    
+    ## Nested conditions
+    condition X > 5
+        condition Y < 25
+            condition Z == 30
+                output "All conditions met";
+                Result = X * Y * Z;
+            else
+                output "Third condition failed";
+        else
+            output "Second condition failed";
+    else
+        output "First condition failed";
+    
+    ## Complex loop with multiple operations
+    declare Counter;
+    declare Sum;
+    declare Product;
+    
+    Counter = 0;
+    Sum = 0;
+    Product = 1;
+    
+    loop Counter < 10
+        Sum += Counter;
+        Product *= Counter + 1;
+        
+        ## Nested condition in loop
+        condition Counter % 2 == 0
+            output "Even number";
+            Counter++;
+        else
+            output "Odd number";
+            Counter++;
+    
+    ## Function with complex logic
+    function Fibonacci(N)
+        declare A;
+        declare B;
+        declare C;
+        declare I;
+        
+        A = 0;
+        B = 1;
+        I = 0;
+        
+        loop I < N
+            C = A + B;
+            A = B;
+            B = C;
+            I++;
+        
+        return B;
+    
+    ## Multiple function calls
+    Result = Fibonacci(10);
+    output Result;
+    
+    ## Complex boolean expressions
+    condition (X > 5 && Y < 30) || (Z == 30 && Result != 0)
+        output "Complex condition true";
+    
+    ## Chained comparisons (as separate conditions)
+    condition X < Y
+        condition Y < Z
+            output "X < Y < Z";
+    
+    ## Mixed operators
+    declare A;
+    declare B;
+    A = 5;
+    B = 3;
+    
+    Result = A ** B + A * B - A / B + A % B;
+    
+    ## Compound assignments in sequence
+    A += B;
+    A *= 2;
+    A -= 1;
+    A /= 3;
+    
+    ## Multiple increments and decrements
+    A++;
+    A++;
+    A--;
+    B--;
+    B--;
+    
+    ## Array operations
+    declare Matrix[5];
+    declare Index;
+    Index = 0;
+    
+    loop Index < 5
+        Matrix[Index] = Index * Index;
+        Index++;
+    
+    ## String concatenation simulation
+    declare First_name;
+    declare Last_name;
+    declare Full_name;
+    
+    First_name = "John";
+    Last_name = "Doe";
+    output First_name;
+    output Last_name;
+    
+finish
+
+#* Multi-line comment at end
+   This is a complex test file
+   with various nested structures *#

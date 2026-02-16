@@ -1,0 +1,81 @@
+package tokens;
+
+/**
+ * Token Class - Represents a single token in the Nexus language
+ * CS4031 - Compiler Construction Assignment 01
+ */
+public class Token {
+    private final TokenType type;
+    private final String lexeme;
+    private final int line;
+    private final int column;
+    
+    /**
+     * Constructor for Token
+     * @param type The type of the token
+     * @param lexeme The actual text of the token
+     * @param line Line number where token appears
+     * @param column Column number where token starts
+     */
+    public Token(TokenType type, String lexeme, int line, int column) {
+        this.type = type;
+        this.lexeme = lexeme;
+        this.line = line;
+        this.column = column;
+    }
+    
+    // Getters
+    public TokenType getType() {
+        return type;
+    }
+    
+    public String getLexeme() {
+        return lexeme;
+    }
+    
+    public int getLine() {
+        return line;
+    }
+    
+    public int getColumn() {
+        return column;
+    }
+    
+    /**
+     * Returns a string representation of the token
+     * Format: <TOKEN_TYPE, "lexeme", Line: X, Col: Y>
+     */
+    @Override
+    public String toString() {
+        return String.format("<%s, \"%s\", Line: %d, Col: %d>", 
+                           type, lexeme, line, column);
+    }
+    
+    /**
+     * Returns a compact string representation for display
+     */
+    public String toCompactString() {
+        return String.format("%-20s %-15s L:%d C:%d", 
+                           type, "\"" + lexeme + "\"", line, column);
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Token token = (Token) obj;
+        return line == token.line && 
+               column == token.column && 
+               type == token.type && 
+               lexeme.equals(token.lexeme);
+    }
+    
+    @Override
+    public int hashCode() {
+        int result = type.hashCode();
+        result = 31 * result + lexeme.hashCode();
+        result = 31 * result + line;
+        result = 31 * result + column;
+        return result;
+    }
+}

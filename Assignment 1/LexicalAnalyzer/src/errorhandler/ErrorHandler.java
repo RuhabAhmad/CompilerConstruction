@@ -1,144 +1,149 @@
 package errorhandler;
+/**
+ * ErrorHandler Class
+ * Handles detection, reporting, and recovery from lexical errors
+ * 
+ * @author Ruhab (23i-0559), Hasan (23i-0698)
+ * @course CS4031 - Compiler Construction
+ * @assignment Assignment 1 - Lexical Analyzer
+ */
+
 import java.util.*;
 
-/**
- * ErrorHandler Class - Detects and reports lexical errors
- * CS4031 - Compiler Construction Assignment 01
- */
 public class ErrorHandler {
     
     /**
      * Inner class to represent a lexical error
      */
     public static class LexicalError {
-        private final String type;
-        private final int line;
-        private final int column;
-        private final String lexeme;
-        private final String reason;
+        String errorType;
+        int lineNumber;
+        int columnNumber;
+        String lexeme;
+        String reason;
         
-        public LexicalError(String type, int line, int column, String lexeme, String reason) {
-            this.type = type;
-            this.line = line;
-            this.column = column;
+        public LexicalError(String errorType, int lineNumber, int columnNumber, 
+                          String lexeme, String reason) {
+            this.errorType = errorType;
+            this.lineNumber = lineNumber;
+            this.columnNumber = columnNumber;
             this.lexeme = lexeme;
             this.reason = reason;
         }
         
         @Override
         public String toString() {
-            return String.format("ERROR [%s] at Line: %d, Col: %d - Lexeme: \"%s\" - %s", 
-                               type, line, column, lexeme, reason);
-        }
-        
-        public String getType() {
-            return type;
-        }
-        
-        public int getLine() {
-            return line;
-        }
-        
-        public int getColumn() {
-            return column;
-        }
-        
-        public String getLexeme() {
-            return lexeme;
-        }
-        
-        public String getReason() {
-            return reason;
+            return String.format("[%s] Line %d, Col %d: '%s' - %s",
+                errorType, lineNumber, columnNumber, lexeme, reason);
         }
     }
     
-    private final List<LexicalError> errors;
+    private List<LexicalError> errors;
+    private boolean hasErrors;
     
     /**
      * Constructor
      */
     public ErrorHandler() {
-        this.errors = new ArrayList<>();
+        errors = new ArrayList<>();
+        hasErrors = false;
     }
     
     /**
      * Report an invalid character error
      */
-    public void reportInvalidCharacter(int line, int column, char ch) {
+    public void reportInvalidCharacter(char ch, int line, int column) {
         String lexeme = String.valueOf(ch);
-        String reason = String.format("Invalid character '%c' (ASCII: %d)", ch, (int)ch);
+        String reason = "Invalid character '" + ch + "' (ASCII: " + (int)ch + ")";
         errors.add(new LexicalError("INVALID_CHARACTER", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Report a malformed integer literal error
      */
-    public void reportMalformedInteger(int line, int column, String lexeme, String reason) {
+    public void reportMalformedInteger(String lexeme, int line, int column, String reason) {
         errors.add(new LexicalError("MALFORMED_INTEGER", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Report a malformed float literal error
      */
-    public void reportMalformedFloat(int line, int column, String lexeme, String reason) {
+    public void reportMalformedFloat(String lexeme, int line, int column, String reason) {
         errors.add(new LexicalError("MALFORMED_FLOAT", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
-     * Report an unterminated string error
+     * Report an unterminated string literal error
      */
-    public void reportUnterminatedString(int line, int column, String lexeme) {
-        errors.add(new LexicalError("UNTERMINATED_STRING", line, column, lexeme, 
-                  "String literal not properly terminated"));
+    public void reportUnterminatedString(String lexeme, int line, int column) {
+        String reason = "String literal not terminated before end of line";
+        errors.add(new LexicalError("UNTERMINATED_STRING", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Report an unterminated character literal error
      */
-    public void reportUnterminatedChar(int line, int column, String lexeme) {
-        errors.add(new LexicalError("UNTERMINATED_CHAR", line, column, lexeme, 
-                  "Character literal not properly terminated"));
+    public void reportUnterminatedChar(String lexeme, int line, int column) {
+        String reason = "Character literal not properly terminated";
+        errors.add(new LexicalError("UNTERMINATED_CHAR", line, column, lexeme, reason));
+        hasErrors = true;
+    }
+    
+    /**
+     * Report an invalid character literal error
+     */
+    public void reportInvalidCharLiteral(String lexeme, int line, int column, String reason) {
+        errors.add(new LexicalError("INVALID_CHAR_LITERAL", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Report an invalid identifier error
      */
-    public void reportInvalidIdentifier(int line, int column, String lexeme, String reason) {
+    public void reportInvalidIdentifier(String lexeme, int line, int column, String reason) {
         errors.add(new LexicalError("INVALID_IDENTIFIER", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Report an unclosed multi-line comment error
      */
-    public void reportUnclosedComment(int line, int column, String lexeme) {
-        errors.add(new LexicalError("UNCLOSED_COMMENT", line, column, lexeme, 
-                  "Multi-line comment not properly closed"));
+    public void reportUnclosedComment(int line, int column) {
+        String reason = "Multi-line comment not closed before end of file";
+        errors.add(new LexicalError("UNCLOSED_COMMENT", line, column, "#*", reason));
+        hasErrors = true;
     }
     
     /**
      * Report an invalid escape sequence error
      */
-    public void reportInvalidEscape(int line, int column, String lexeme, String escape) {
-        errors.add(new LexicalError("INVALID_ESCAPE", line, column, lexeme, 
-                  String.format("Invalid escape sequence '%s'", escape)));
+    public void reportInvalidEscape(String lexeme, int line, int column, char escapeChar) {
+        String reason = "Invalid escape sequence '\\" + escapeChar + "'";
+        errors.add(new LexicalError("INVALID_ESCAPE", line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Report a generic lexical error
      */
-    public void reportError(String type, int line, int column, String lexeme, String reason) {
-        errors.add(new LexicalError(type, line, column, lexeme, reason));
+    public void reportError(String errorType, String lexeme, int line, int column, String reason) {
+        errors.add(new LexicalError(errorType, line, column, lexeme, reason));
+        hasErrors = true;
     }
     
     /**
      * Check if there are any errors
      */
     public boolean hasErrors() {
-        return !errors.isEmpty();
+        return hasErrors;
     }
     
     /**
-     * Get the number of errors
+     * Get total number of errors
      */
     public int getErrorCount() {
         return errors.size();
@@ -152,44 +157,25 @@ public class ErrorHandler {
     }
     
     /**
-     * Print all errors
+     * Display all errors in a formatted way
      */
-    public void printErrors() {
-        if (errors.isEmpty()) {
-            System.out.println("\n✓ No lexical errors detected.");
+    public void displayErrors() {
+        if (!hasErrors) {
+            System.out.println("\n✓ No lexical errors found!");
             return;
         }
         
-        System.out.println("\n╔════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                        LEXICAL ERRORS DETECTED                         ║");
-        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+        System.out.println("\n╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                            LEXICAL ERRORS                                    ║");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
         
         for (int i = 0; i < errors.size(); i++) {
-            System.out.printf("║ %2d. %-67s║%n", i + 1, 
-                            truncate(errors.get(i).toString(), 67));
-            // If error message is long, print additional lines
-            String errorStr = errors.get(i).toString();
-            if (errorStr.length() > 67) {
-                for (int j = 67; j < errorStr.length(); j += 67) {
-                    int end = Math.min(j + 67, errorStr.length());
-                    System.out.printf("║     %-67s║%n", truncate(errorStr.substring(j, end), 67));
-                }
-            }
+            System.out.printf("║ %-77s║\n", (i + 1) + ". " + errors.get(i).toString());
         }
         
-        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ Total Errors: %-59d ║%n", errors.size());
-        System.out.println("╚════════════════════════════════════════════════════════════════════════╝\n");
-    }
-    
-    /**
-     * Truncate a string to a maximum length
-     */
-    private String truncate(String str, int maxLen) {
-        if (str.length() <= maxLen) {
-            return str;
-        }
-        return str.substring(0, maxLen - 3) + "...";
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ Total Errors: %-66d ║\n", errors.size());
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
     }
     
     /**
@@ -197,5 +183,6 @@ public class ErrorHandler {
      */
     public void clear() {
         errors.clear();
+        hasErrors = false;
     }
 }

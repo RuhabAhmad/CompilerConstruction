@@ -1,27 +1,26 @@
 package scanner;
 import java.io.*;
 import java.util.*;
-import java.util.regex.*;
-
 import tokens.Token;
 import tokens.TokenType;
 import symboltable.SymbolTable;
 import errorhandler.ErrorHandler;
 
 /**
- * ManualScanner Class - DFA-based Lexical Analyzer for Nexus Language
- * CS4031 - Compiler Construction Assignment 01
+ * ManualScanner Class
+ * DFA-based Lexical Analyzer for NEXUS Programming Language
  * 
- * This scanner implements a DFA-based approach to tokenize Nexus source code.
- * It recognizes all token types specified in the assignment.
- */
+ * @author Ruhab (23i-0559), Hasan (23i-0698)
+ * @course CS4031 - Compiler Construction
+ * @assignment Assignment 1 - Lexical Analyzer
+**/
 public class ManualScanner {
     
     private String input;
     private int position;
-    private int line;
-    private int column;
-    private int lineStart;  // Position where current line starts
+    private int lineNumber;
+    private int columnNumber;
+    private int currentLineStart;  // To track column numbers
     
     private List<Token> tokens;
     private SymbolTable symbolTable;
@@ -30,7 +29,7 @@ public class ManualScanner {
     // Statistics
     private Map<TokenType, Integer> tokenCounts;
     private int totalTokens;
-    private int linesProcessed;
+    private int totalLines;
     private int commentsRemoved;
     
     // Keywords set for quick lookup
@@ -41,725 +40,684 @@ public class ManualScanner {
     
     /**
      * Constructor
+     * @param input The source code to scan
      */
-    public ManualScanner() {
+    public ManualScanner(String input) {
+        this.input = input;
+        this.position = 0;
+        this.lineNumber = 1;
+        this.columnNumber = 1;
+        this.currentLineStart = 0;
+        
         this.tokens = new ArrayList<>();
         this.symbolTable = new SymbolTable();
         this.errorHandler = new ErrorHandler();
+        
         this.tokenCounts = new HashMap<>();
-        this.totalTokens = 0;
-        this.commentsRemoved = 0;
-    }
-    
-    /**
-     * Scan a file and tokenize it
-     * @param filename Path to the source file
-     * @return List of tokens
-     */
-    public List<Token> scanFile(String filename) throws IOException {
-        // Read file content
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append('\n');
-            }
+        for (TokenType type : TokenType.values()) {
+            tokenCounts.put(type, 0);
         }
-        
-        return scan(content.toString());
+        this.totalTokens = 0;
+        this.totalLines = 1;
+        this.commentsRemoved = 0;
     }
     
     /**
-     * Scan a string and tokenize it
-     * @param source Source code string
-     * @return List of tokens
+     * Main scanning method
      */
-    public List<Token> scan(String source) {
-        this.input = source;
-        this.position = 0;
-        this.line = 1;
-        this.column = 1;
-        this.lineStart = 0;
-        this.tokens.clear();
-        this.tokenCounts.clear();
-        this.totalTokens = 0;
-        this.linesProcessed = 0;
-        this.commentsRemoved = 0;
-        
+    public List<Token> scan() {
         while (position < input.length()) {
-            scanToken();
+            char current = input.charAt(position);
+            
+            // Skip whitespace but track line/column numbers
+            if (Character.isWhitespace(current)) {
+                scanWhitespace();
+                continue;
+            }
+            
+            // Try to match multi-line comment first (highest priority)
+            if (current == '#' && peek() == '*') {
+                scanMultiLineComment();
+                continue;
+            }
+            
+            // Try to match single-line comment
+            if (current == '#' && peek() == '#') {
+                scanSingleLineComment();
+                continue;
+            }
+            
+            // Try to match multi-character operators
+            Token multiCharOp = tryMatchMultiCharOperator();
+            if (multiCharOp != null) {
+                addToken(multiCharOp);
+                continue;
+            }
+            
+            // Try to match keywords, booleans, and identifiers
+            if (Character.isUpperCase(current)) {
+                Token identifier = scanIdentifier();
+                addToken(identifier);
+                continue;
+            }
+            
+            // Try to match numeric literals (integer or float)
+            if (Character.isDigit(current) || 
+                (current == '+' || current == '-') && Character.isDigit(peek())) {
+                Token number = scanNumber();
+                addToken(number);
+                continue;
+            }
+            
+            // Try to match string literals
+            if (current == '"') {
+                Token string = scanString();
+                addToken(string);
+                continue;
+            }
+            
+            // Try to match character literals
+            if (current == '\'') {
+                Token charLit = scanChar();
+                addToken(charLit);
+                continue;
+            }
+            
+            // Try to match single-character operators
+            if (isOperator(current)) {
+                Token op = scanSingleCharOperator();
+                addToken(op);
+                continue;
+            }
+            
+            // Try to match punctuators
+            if (isPunctuator(current)) {
+                Token punct = scanPunctuator();
+                addToken(punct);
+                continue;
+            }
+            
+            // Invalid character - report error and skip
+            errorHandler.reportInvalidCharacter(current, lineNumber, columnNumber);
+            advance();
         }
         
         // Add EOF token
-        tokens.add(new Token(TokenType.EOF, "", line, column));
-        
-        // Update statistics
-        linesProcessed = line;
+        tokens.add(new Token(TokenType.EOF, "", lineNumber, columnNumber));
+        totalLines = lineNumber;
         
         return tokens;
     }
     
     /**
-     * Scan next token using DFA-based approach
+     * Scan whitespace and update line/column tracking
      */
-    private void scanToken() {
-        char current = peek();
-        
-        // Check patterns in priority order as specified
-        
-        // 1. Multi-line comments: #*(. . .)*#
-        if (tryMatchMultiLineComment()) return;
-        
-        // 2. Single-line comments: ##...
-        if (tryMatchSingleLineComment()) return;
-        
-        // 3. Multi-character operators (must come before single-char operators)
-        if (tryMatchMultiCharOperators()) return;
-        
-        // 4. Keywords
-        if (Character.isLetter(current) && Character.isUpperCase(current)) {
-            if (tryMatchKeywordOrIdentifier()) return;
+    private void scanWhitespace() {
+        while (position < input.length() && Character.isWhitespace(input.charAt(position))) {
+            if (input.charAt(position) == '\n') {
+                lineNumber++;
+                columnNumber = 1;
+                currentLineStart = position + 1;
+            } else if (input.charAt(position) == '\t') {
+                columnNumber += 4;  // Treat tab as 4 spaces
+            } else {
+                columnNumber++;
+            }
+            position++;
         }
+    }
+    
+    /**
+     * Scan single-line comment (## to end of line)
+     */
+    private void scanSingleLineComment() {
+        int startCol = columnNumber;
+        StringBuilder comment = new StringBuilder();
         
-        // 5. Boolean literals (true/false) - handled in identifier matching
-        
-        // 6. Identifiers - already handled above
-        
-        // 7. Floating-point literals (must come before integer)
-        if (Character.isDigit(current) || current == '+' || current == '-') {
-            if (tryMatchNumber()) return;
-        }
-        
-        // 8. String literals
-        if (current == '"') {
-            if (tryMatchString()) return;
-        }
-        
-        // 9. Character literals
-        if (current == '\'') {
-            if (tryMatchChar()) return;
-        }
-        
-        // 10. Single-character operators
-        if (tryMatchSingleCharOperator()) return;
-        
-        // 11. Punctuators
-        if (tryMatchPunctuator()) return;
-        
-        // 12. Whitespace
-        if (Character.isWhitespace(current)) {
-            skipWhitespace();
-            return;
-        }
-        
-        // Invalid character - error recovery
-        errorHandler.reportInvalidCharacter(line, column, current);
+        // Skip ##
         advance();
+        advance();
+        
+        // Read until end of line or end of input
+        while (position < input.length() && input.charAt(position) != '\n') {
+            comment.append(input.charAt(position));
+            advance();
+        }
+        
+        commentsRemoved++;
     }
     
     /**
-     * Try to match a multi-line comment: #*...*#
+     * Scan multi-line comment (#* ... *#)
      */
-    private boolean tryMatchMultiLineComment() {
-        if (peek() == '#' && peekAhead(1) == '*') {
-            int startLine = line;
-            int startCol = column;
-            StringBuilder comment = new StringBuilder();
-            
-            advance(); // consume #
-            advance(); // consume *
-            comment.append("#*");
-            
-            while (position < input.length()) {
-                char c = peek();
-                
-                if (c == '*' && peekAhead(1) == '#') {
-                    comment.append("*#");
-                    advance(); // consume *
-                    advance(); // consume #
-                    commentsRemoved++;
-                    return true;
-                }
-                
-                comment.append(c);
+    private void scanMultiLineComment() {
+        int startLine = lineNumber;
+        int startCol = columnNumber;
+        
+        // Skip #*
+        advance();
+        advance();
+        
+        // Read until */ or end of input
+        while (position < input.length() - 1) {
+            if (input.charAt(position) == '*' && peek() == '#') {
+                // Found closing */
                 advance();
+                advance();
+                commentsRemoved++;
+                return;
             }
             
-            // Unclosed comment
-            errorHandler.reportUnclosedComment(startLine, startCol, comment.toString());
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Try to match a single-line comment: ##...
-     */
-    private boolean tryMatchSingleLineComment() {
-        if (peek() == '#' && peekAhead(1) == '#') {
-            int startCol = column;
-            StringBuilder comment = new StringBuilder();
-            
-            while (position < input.length() && peek() != '\n') {
-                comment.append(peek());
-                advance();
+            if (input.charAt(position) == '\n') {
+                lineNumber++;
+                columnNumber = 1;
+                currentLineStart = position + 1;
+            } else {
+                columnNumber++;
             }
-            
-            commentsRemoved++;
-            return true;
+            position++;
         }
-        return false;
+        
+        // Reached end without finding closing */
+        errorHandler.reportUnclosedComment(startLine, startCol);
     }
     
     /**
      * Try to match multi-character operators
-     * Priority: **, ==, !=, <=, >=, &&, ||, ++, --, +=, -=, *=, /=
      */
-    private boolean tryMatchMultiCharOperators() {
-        char c1 = peek();
-        char c2 = peekAhead(1);
-        
-        int startCol = column;
-        TokenType type = null;
-        String lexeme = null;
+    private Token tryMatchMultiCharOperator() {
+        int startCol = columnNumber;
+        char current = input.charAt(position);
+        char next = peek();
         
         // Two-character operators
-        if (c1 == '*' && c2 == '*') { type = TokenType.OP_EXPONENT; lexeme = "**"; }
-        else if (c1 == '=' && c2 == '=') { type = TokenType.OP_EQUAL; lexeme = "=="; }
-        else if (c1 == '!' && c2 == '=') { type = TokenType.OP_NOT_EQUAL; lexeme = "!="; }
-        else if (c1 == '<' && c2 == '=') { type = TokenType.OP_LESS_EQUAL; lexeme = "<="; }
-        else if (c1 == '>' && c2 == '=') { type = TokenType.OP_GREATER_EQUAL; lexeme = ">="; }
-        else if (c1 == '&' && c2 == '&') { type = TokenType.OP_AND; lexeme = "&&"; }
-        else if (c1 == '|' && c2 == '|') { type = TokenType.OP_OR; lexeme = "||"; }
-        else if (c1 == '+' && c2 == '+') { type = TokenType.OP_INCREMENT; lexeme = "++"; }
-        else if (c1 == '-' && c2 == '-') { type = TokenType.OP_DECREMENT; lexeme = "--"; }
-        else if (c1 == '+' && c2 == '=') { type = TokenType.OP_PLUS_ASSIGN; lexeme = "+="; }
-        else if (c1 == '-' && c2 == '=') { type = TokenType.OP_MINUS_ASSIGN; lexeme = "-="; }
-        else if (c1 == '*' && c2 == '=') { type = TokenType.OP_MULT_ASSIGN; lexeme = "*="; }
-        else if (c1 == '/' && c2 == '=') { type = TokenType.OP_DIV_ASSIGN; lexeme = "/="; }
+        String twoChar = "" + current + next;
         
-        if (type != null) {
+        // Check for exponentiation
+        if (twoChar.equals("**")) {
             advance();
             advance();
-            addToken(type, lexeme, line, startCol);
-            return true;
+            return new Token(TokenType.ARITHMETIC_OP, "**", lineNumber, startCol);
         }
         
-        return false;
+        // Check for relational operators
+        if (twoChar.equals("==") || twoChar.equals("!=") || 
+            twoChar.equals("<=") || twoChar.equals(">=")) {
+            advance();
+            advance();
+            return new Token(TokenType.RELATIONAL_OP, twoChar, lineNumber, startCol);
+        }
+        
+        // Check for logical operators
+        if (twoChar.equals("&&") || twoChar.equals("||")) {
+            advance();
+            advance();
+            return new Token(TokenType.LOGICAL_OP, twoChar, lineNumber, startCol);
+        }
+        
+        // Check for increment/decrement
+        if (twoChar.equals("++")) {
+            advance();
+            advance();
+            return new Token(TokenType.INCREMENT_OP, "++", lineNumber, startCol);
+        }
+        
+        if (twoChar.equals("--")) {
+            advance();
+            advance();
+            return new Token(TokenType.DECREMENT_OP, "--", lineNumber, startCol);
+        }
+        
+        // Check for compound assignment
+        if (twoChar.equals("+=") || twoChar.equals("-=") || 
+            twoChar.equals("*=") || twoChar.equals("/=")) {
+            advance();
+            advance();
+            return new Token(TokenType.ASSIGNMENT_OP, twoChar, lineNumber, startCol);
+        }
+        
+        return null;  // No multi-char operator matched
     }
     
     /**
-     * Try to match keyword or identifier
-     * Keywords: start, finish, loop, condition, declare, output, input, function, return, break, continue, else
-     * Identifiers: [A-Z][a-z0-9_]{0,30}
-     * Booleans: true, false
+     * Scan identifier (or keyword or boolean)
+     * Regex: [A-Z][a-z0-9_]{0,30}
      */
-    private boolean tryMatchKeywordOrIdentifier() {
-        int startCol = column;
-        int startPos = position;
+    private Token scanIdentifier() {
+        int startCol = columnNumber;
         StringBuilder lexeme = new StringBuilder();
         
-        char first = peek();
-        if (!Character.isUpperCase(first)) {
-            // Check for boolean literals (lowercase)
-            if (tryMatchBoolean()) return true;
-            return false;
+        // First character must be uppercase
+        if (!Character.isUpperCase(input.charAt(position))) {
+            errorHandler.reportInvalidIdentifier(
+                String.valueOf(input.charAt(position)),
+                lineNumber, startCol,
+                "Identifier must start with uppercase letter"
+            );
+            advance();
+            return new Token(TokenType.ERROR, "", lineNumber, startCol);
         }
         
-        lexeme.append(first);
+        lexeme.append(input.charAt(position));
         advance();
         
-        // Continue matching [a-z0-9_]
-        while (position < input.length()) {
-            char c = peek();
-            if (Character.isLowerCase(c) || Character.isDigit(c) || c == '_') {
-                lexeme.append(c);
-                advance();
-            } else {
-                break;
-            }
+        // Continue with lowercase, digits, or underscores
+        while (position < input.length() && 
+               (Character.isLowerCase(input.charAt(position)) || 
+                Character.isDigit(input.charAt(position)) || 
+                input.charAt(position) == '_')) {
+            lexeme.append(input.charAt(position));
+            advance();
         }
         
-        String text = lexeme.toString();
+        String identifier = lexeme.toString();
         
-        // Check length constraint (max 31 characters)
-        if (text.length() > 31) {
-            errorHandler.reportInvalidIdentifier(line, startCol, text, 
-                "Identifier exceeds maximum length of 31 characters");
-            return true;
+        // Check length (max 31 characters)
+        if (identifier.length() > 31) {
+            errorHandler.reportInvalidIdentifier(
+                identifier, lineNumber, startCol,
+                "Identifier exceeds maximum length of 31 characters"
+            );
+            return new Token(TokenType.ERROR, identifier, lineNumber, startCol);
         }
         
         // Check if it's a keyword
-        if (KEYWORDS.contains(text)) {
-            TokenType keywordType = getKeywordType(text);
-            addToken(keywordType, text, line, startCol);
-            return true;
+        if (KEYWORDS.contains(identifier)) {
+            return new Token(TokenType.KEYWORD, identifier, lineNumber, startCol);
         }
         
-        // It's an identifier
-        addToken(TokenType.IDENTIFIER, text, line, startCol);
-        symbolTable.addIdentifier(text, line);
-        return true;
+        // Check if it's a boolean literal
+        if (identifier.equals("True") || identifier.equals("False")) {
+            return new Token(TokenType.BOOLEAN_LITERAL, identifier, lineNumber, startCol);
+        }
+        
+        // It's an identifier - add to symbol table
+        symbolTable.addIdentifier(identifier, lineNumber);
+        return new Token(TokenType.IDENTIFIER, identifier, lineNumber, startCol);
     }
     
     /**
-     * Try to match boolean literal: true or false
+     * Scan numeric literal (integer or float)
      */
-    private boolean tryMatchBoolean() {
-        if (matchKeyword("true")) {
-            addToken(TokenType.BOOLEAN_LITERAL, "true", line, column - 4);
-            return true;
-        }
-        if (matchKeyword("false")) {
-            addToken(TokenType.BOOLEAN_LITERAL, "false", line, column - 5);
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Match a specific keyword at current position
-     */
-    private boolean matchKeyword(String keyword) {
-        int startPos = position;
-        int startCol = column;
-        
-        for (int i = 0; i < keyword.length(); i++) {
-            if (position >= input.length() || peek() != keyword.charAt(i)) {
-                // Rewind
-                position = startPos;
-                column = startCol;
-                return false;
-            }
-            advance();
-        }
-        
-        // Make sure next character is not a letter/digit (word boundary)
-        if (position < input.length()) {
-            char next = peek();
-            if (Character.isLetterOrDigit(next) || next == '_') {
-                // Rewind
-                position = startPos;
-                column = startCol;
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Get TokenType for a keyword
-     */
-    private TokenType getKeywordType(String keyword) {
-        switch (keyword) {
-            case "start": return TokenType.KEYWORD_START;
-            case "finish": return TokenType.KEYWORD_FINISH;
-            case "loop": return TokenType.KEYWORD_LOOP;
-            case "condition": return TokenType.KEYWORD_CONDITION;
-            case "declare": return TokenType.KEYWORD_DECLARE;
-            case "output": return TokenType.KEYWORD_OUTPUT;
-            case "input": return TokenType.KEYWORD_INPUT;
-            case "function": return TokenType.KEYWORD_FUNCTION;
-            case "return": return TokenType.KEYWORD_RETURN;
-            case "break": return TokenType.KEYWORD_BREAK;
-            case "continue": return TokenType.KEYWORD_CONTINUE;
-            case "else": return TokenType.KEYWORD_ELSE;
-            default: return TokenType.IDENTIFIER;
-        }
-    }
-    
-    /**
-     * Try to match integer or floating-point literal
-     * Integer: [+-]?[0-9]+
-     * Float: [+-]?[0-9]+\.[0-9]{1,6}([eE][+-]?[0-9]+)?
-     */
-    private boolean tryMatchNumber() {
-        int startCol = column;
+    private Token scanNumber() {
+        int startCol = columnNumber;
         StringBuilder lexeme = new StringBuilder();
         
-        // Optional sign
-        if (peek() == '+' || peek() == '-') {
-            lexeme.append(peek());
+        // Handle optional sign
+        if (input.charAt(position) == '+' || input.charAt(position) == '-') {
+            lexeme.append(input.charAt(position));
             advance();
         }
         
-        // Must have at least one digit
-        if (position >= input.length() || !Character.isDigit(peek())) {
-            // Just a sign, not a number - backtrack
-            for (int i = 0; i < lexeme.length(); i++) {
-                position--;
-                column--;
-            }
-            return false;
-        }
-        
-        // Integer part
-        while (position < input.length() && Character.isDigit(peek())) {
-            lexeme.append(peek());
+        // Scan digits before decimal point
+        while (position < input.length() && Character.isDigit(input.charAt(position))) {
+            lexeme.append(input.charAt(position));
             advance();
         }
         
         // Check for decimal point (float)
-        if (position < input.length() && peek() == '.') {
-            // Look ahead to ensure there's a digit after the decimal
-            if (position + 1 < input.length() && Character.isDigit(peekAhead(1))) {
-                lexeme.append(peek());
+        if (position < input.length() && input.charAt(position) == '.') {
+            lexeme.append('.');
+            advance();
+            
+            int decimalCount = 0;
+            // Scan digits after decimal point
+            while (position < input.length() && Character.isDigit(input.charAt(position))) {
+                lexeme.append(input.charAt(position));
+                advance();
+                decimalCount++;
+            }
+            
+            // Check if we have decimal digits
+            if (decimalCount == 0) {
+                errorHandler.reportMalformedFloat(
+                    lexeme.toString(), lineNumber, startCol,
+                    "Float must have at least one digit after decimal point"
+                );
+                return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+            }
+            
+            // Check decimal count (max 6)
+            if (decimalCount > 6) {
+                errorHandler.reportMalformedFloat(
+                    lexeme.toString(), lineNumber, startCol,
+                    "Float cannot have more than 6 decimal places"
+                );
+                return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+            }
+            
+            // Check for scientific notation
+            if (position < input.length() && 
+                (input.charAt(position) == 'e' || input.charAt(position) == 'E')) {
+                lexeme.append(input.charAt(position));
                 advance();
                 
-                // Fractional part
-                int fracDigits = 0;
-                while (position < input.length() && Character.isDigit(peek())) {
-                    lexeme.append(peek());
+                // Optional sign in exponent
+                if (position < input.length() && 
+                    (input.charAt(position) == '+' || input.charAt(position) == '-')) {
+                    lexeme.append(input.charAt(position));
                     advance();
-                    fracDigits++;
                 }
                 
-                // Check fractional part length (1-6 digits)
-                if (fracDigits > 6) {
-                    errorHandler.reportMalformedFloat(line, startCol, lexeme.toString(), 
-                        "Fractional part exceeds 6 digits");
-                    return true;
-                }
-                
-                // Optional exponent
-                if (position < input.length() && (peek() == 'e' || peek() == 'E')) {
-                    lexeme.append(peek());
+                // Exponent digits
+                int expDigits = 0;
+                while (position < input.length() && Character.isDigit(input.charAt(position))) {
+                    lexeme.append(input.charAt(position));
                     advance();
-                    
-                    // Optional sign in exponent
-                    if (position < input.length() && (peek() == '+' || peek() == '-')) {
-                        lexeme.append(peek());
-                        advance();
-                    }
-                    
-                    // Exponent digits
-                    int expStart = lexeme.length();
-                    while (position < input.length() && Character.isDigit(peek())) {
-                        lexeme.append(peek());
-                        advance();
-                    }
-                    
-                    // Check if exponent has digits
-                    if (lexeme.length() == expStart) {
-                        errorHandler.reportMalformedFloat(line, startCol, lexeme.toString(), 
-                            "Exponent has no digits");
-                        return true;
-                    }
+                    expDigits++;
                 }
                 
-                addToken(TokenType.FLOAT_LITERAL, lexeme.toString(), line, startCol);
-                return true;
+                if (expDigits == 0) {
+                    errorHandler.reportMalformedFloat(
+                        lexeme.toString(), lineNumber, startCol,
+                        "Exponent must have at least one digit"
+                    );
+                    return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+                }
             }
+            
+            return new Token(TokenType.FLOAT_LITERAL, lexeme.toString(), lineNumber, startCol);
         }
         
         // It's an integer
-        addToken(TokenType.INTEGER_LITERAL, lexeme.toString(), line, startCol);
-        return true;
+        return new Token(TokenType.INTEGER_LITERAL, lexeme.toString(), lineNumber, startCol);
     }
     
     /**
-     * Try to match string literal: "..."
-     * Supports escape sequences: \", \\, \n, \t, \r
+     * Scan string literal
+     * Regex: "([ ^"\\\n]|\\["\\ntr])*"
      */
-    private boolean tryMatchString() {
-        if (peek() != '"') return false;
-        
-        int startLine = line;
-        int startCol = column;
+    private Token scanString() {
+        int startCol = columnNumber;
         StringBuilder lexeme = new StringBuilder();
         
         lexeme.append('"');
-        advance();
+        advance();  // Skip opening quote
         
-        while (position < input.length()) {
-            char c = peek();
+        while (position < input.length() && input.charAt(position) != '"') {
+            char current = input.charAt(position);
             
-            if (c == '"') {
-                lexeme.append(c);
-                advance();
-                addToken(TokenType.STRING_LITERAL, lexeme.toString(), startLine, startCol);
-                return true;
+            // Check for newline (unterminated string)
+            if (current == '\n') {
+                errorHandler.reportUnterminatedString(lexeme.toString(), lineNumber, startCol);
+                return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
             }
             
-            if (c == '\n') {
-                // Unterminated string
-                errorHandler.reportUnterminatedString(startLine, startCol, lexeme.toString());
-                return true;
-            }
-            
-            if (c == '\\') {
-                lexeme.append(c);
+            // Handle escape sequences
+            if (current == '\\') {
+                lexeme.append(current);
                 advance();
                 
-                if (position < input.length()) {
-                    char escaped = peek();
-                    // Valid escape sequences: \", \\, \n, \t, \r
-                    if (escaped == '"' || escaped == '\\' || escaped == 'n' || 
-                        escaped == 't' || escaped == 'r') {
-                        lexeme.append(escaped);
-                        advance();
-                    } else {
-                        errorHandler.reportInvalidEscape(line, column, lexeme.toString(), 
-                            "\\" + escaped);
-                        advance();
-                    }
+                if (position >= input.length()) {
+                    errorHandler.reportUnterminatedString(lexeme.toString(), lineNumber, startCol);
+                    return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+                }
+                
+                char escapeChar = input.charAt(position);
+                if (escapeChar == '"' || escapeChar == '\\' || escapeChar == 'n' || 
+                    escapeChar == 't' || escapeChar == 'r') {
+                    lexeme.append(escapeChar);
+                    advance();
+                } else {
+                    errorHandler.reportInvalidEscape(lexeme.toString(), lineNumber, startCol, escapeChar);
+                    advance();
                 }
             } else {
-                lexeme.append(c);
+                lexeme.append(current);
                 advance();
             }
         }
         
-        // End of file reached without closing quote
-        errorHandler.reportUnterminatedString(startLine, startCol, lexeme.toString());
-        return true;
+        // Check if we found closing quote
+        if (position >= input.length()) {
+            errorHandler.reportUnterminatedString(lexeme.toString(), lineNumber, startCol);
+            return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+        }
+        
+        lexeme.append('"');
+        advance();  // Skip closing quote
+        
+        return new Token(TokenType.STRING_LITERAL, lexeme.toString(), lineNumber, startCol);
     }
     
     /**
-     * Try to match character literal: '.'
-     * Supports escape sequences: \', \\, \n, \t, \r
+     * Scan character literal
+     * Regex: '([ ^'\\\n]|\\['\\ntr])'
      */
-    private boolean tryMatchChar() {
-        if (peek() != '\'') return false;
-        
-        int startLine = line;
-        int startCol = column;
+    private Token scanChar() {
+        int startCol = columnNumber;
         StringBuilder lexeme = new StringBuilder();
         
         lexeme.append('\'');
-        advance();
+        advance();  // Skip opening quote
         
         if (position >= input.length()) {
-            errorHandler.reportUnterminatedChar(startLine, startCol, lexeme.toString());
-            return true;
+            errorHandler.reportUnterminatedChar(lexeme.toString(), lineNumber, startCol);
+            return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
         }
         
-        char c = peek();
+        char current = input.charAt(position);
         
-        if (c == '\\') {
-            lexeme.append(c);
+        // Check for newline or immediate closing
+        if (current == '\n') {
+            errorHandler.reportUnterminatedChar(lexeme.toString(), lineNumber, startCol);
+            return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+        }
+        
+        if (current == '\'') {
+            errorHandler.reportInvalidCharLiteral(lexeme.toString(), lineNumber, startCol, 
+                "Character literal cannot be empty");
+            return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
+        }
+        
+        // Handle escape sequences
+        if (current == '\\') {
+            lexeme.append(current);
             advance();
             
-            if (position < input.length()) {
-                char escaped = peek();
-                // Valid escape sequences: \', \\, \n, \t, \r
-                if (escaped == '\'' || escaped == '\\' || escaped == 'n' || 
-                    escaped == 't' || escaped == 'r') {
-                    lexeme.append(escaped);
-                    advance();
-                } else {
-                    errorHandler.reportInvalidEscape(line, column, lexeme.toString(), 
-                        "\\" + escaped);
-                    advance();
-                }
+            if (position >= input.length()) {
+                errorHandler.reportUnterminatedChar(lexeme.toString(), lineNumber, startCol);
+                return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
             }
-        } else if (c != '\n' && c != '\'') {
-            lexeme.append(c);
+            
+            char escapeChar = input.charAt(position);
+            if (escapeChar == '\'' || escapeChar == '\\' || escapeChar == 'n' || 
+                escapeChar == 't' || escapeChar == 'r') {
+                lexeme.append(escapeChar);
+                advance();
+            } else {
+                errorHandler.reportInvalidEscape(lexeme.toString(), lineNumber, startCol, escapeChar);
+                advance();
+            }
+        } else {
+            lexeme.append(current);
             advance();
-        } else if (c == '\n') {
-            errorHandler.reportUnterminatedChar(startLine, startCol, lexeme.toString());
-            return true;
         }
         
-        // Closing quote
-        if (position < input.length() && peek() == '\'') {
-            lexeme.append('\'');
-            advance();
-            addToken(TokenType.CHAR_LITERAL, lexeme.toString(), startLine, startCol);
-            return true;
+        // Should have closing quote next
+        if (position >= input.length() || input.charAt(position) != '\'') {
+            errorHandler.reportInvalidCharLiteral(lexeme.toString(), lineNumber, startCol,
+                "Character literal must be closed with single quote");
+            return new Token(TokenType.ERROR, lexeme.toString(), lineNumber, startCol);
         }
         
-        errorHandler.reportUnterminatedChar(startLine, startCol, lexeme.toString());
-        return true;
+        lexeme.append('\'');
+        advance();  // Skip closing quote
+        
+        return new Token(TokenType.CHAR_LITERAL, lexeme.toString(), lineNumber, startCol);
     }
     
     /**
-     * Try to match single-character operators
+     * Check if character is a single-character operator
      */
-    private boolean tryMatchSingleCharOperator() {
-        char c = peek();
-        int startCol = column;
-        TokenType type = null;
-        
-        switch (c) {
-            case '+': type = TokenType.OP_PLUS; break;
-            case '-': type = TokenType.OP_MINUS; break;
-            case '*': type = TokenType.OP_MULTIPLY; break;
-            case '/': type = TokenType.OP_DIVIDE; break;
-            case '%': type = TokenType.OP_MODULO; break;
-            case '<': type = TokenType.OP_LESS; break;
-            case '>': type = TokenType.OP_GREATER; break;
-            case '=': type = TokenType.OP_ASSIGN; break;
-            case '!': type = TokenType.OP_NOT; break;
-            default: return false;
-        }
-        
+    private boolean isOperator(char ch) {
+        return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' ||
+               ch == '<' || ch == '>' || ch == '=' || ch == '!';
+    }
+    
+    /**
+     * Scan single-character operator
+     */
+    private Token scanSingleCharOperator() {
+        int startCol = columnNumber;
+        char op = input.charAt(position);
         advance();
-        addToken(type, String.valueOf(c), line, startCol);
-        return true;
+        
+        String lexeme = String.valueOf(op);
+        
+        // Determine operator type
+        if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%') {
+            return new Token(TokenType.ARITHMETIC_OP, lexeme, lineNumber, startCol);
+        } else if (op == '<' || op == '>') {
+            return new Token(TokenType.RELATIONAL_OP, lexeme, lineNumber, startCol);
+        } else if (op == '=') {
+            return new Token(TokenType.ASSIGNMENT_OP, lexeme, lineNumber, startCol);
+        } else if (op == '!') {
+            return new Token(TokenType.LOGICAL_OP, lexeme, lineNumber, startCol);
+        }
+        
+        return new Token(TokenType.ERROR, lexeme, lineNumber, startCol);
     }
     
     /**
-     * Try to match punctuators: ( ) { } [ ] , ; :
+     * Check if character is a punctuator
      */
-    private boolean tryMatchPunctuator() {
-        char c = peek();
-        int startCol = column;
-        TokenType type = null;
-        
-        switch (c) {
-            case '(': type = TokenType.PUNCT_LPAREN; break;
-            case ')': type = TokenType.PUNCT_RPAREN; break;
-            case '{': type = TokenType.PUNCT_LBRACE; break;
-            case '}': type = TokenType.PUNCT_RBRACE; break;
-            case '[': type = TokenType.PUNCT_LBRACKET; break;
-            case ']': type = TokenType.PUNCT_RBRACKET; break;
-            case ',': type = TokenType.PUNCT_COMMA; break;
-            case ';': type = TokenType.PUNCT_SEMICOLON; break;
-            case ':': type = TokenType.PUNCT_COLON; break;
-            default: return false;
-        }
-        
+    private boolean isPunctuator(char ch) {
+        return ch == '(' || ch == ')' || ch == '{' || ch == '}' ||
+               ch == '[' || ch == ']' || ch == ',' || ch == ';' || ch == ':';
+    }
+    
+    /**
+     * Scan punctuator
+     */
+    private Token scanPunctuator() {
+        int startCol = columnNumber;
+        char punct = input.charAt(position);
         advance();
-        addToken(type, String.valueOf(c), line, startCol);
-        return true;
+        return new Token(TokenType.PUNCTUATOR, String.valueOf(punct), lineNumber, startCol);
     }
     
     /**
-     * Skip whitespace and track line numbers
-     */
-    private void skipWhitespace() {
-        while (position < input.length() && Character.isWhitespace(peek())) {
-            advance();
-        }
-    }
-    
-    /**
-     * Peek at current character without advancing
+     * Peek at next character without consuming it
      */
     private char peek() {
-        if (position >= input.length()) return '\0';
-        return input.charAt(position);
+        if (position + 1 < input.length()) {
+            return input.charAt(position + 1);
+        }
+        return '\0';
     }
     
     /**
-     * Peek ahead n characters
-     */
-    private char peekAhead(int n) {
-        if (position + n >= input.length()) return '\0';
-        return input.charAt(position + n);
-    }
-    
-    /**
-     * Advance to next character and update position tracking
+     * Advance position and update column number
      */
     private void advance() {
         if (position < input.length()) {
-            char c = input.charAt(position);
-            position++;
-            
-            if (c == '\n') {
-                line++;
-                column = 1;
-                lineStart = position;
+            if (input.charAt(position) == '\n') {
+                lineNumber++;
+                columnNumber = 1;
+                currentLineStart = position + 1;
             } else {
-                column++;
+                columnNumber++;
             }
+            position++;
         }
     }
     
     /**
-     * Add a token to the list
+     * Add token to list and update statistics
      */
-    private void addToken(TokenType type, String lexeme, int line, int column) {
-        tokens.add(new Token(type, lexeme, line, column));
-        totalTokens++;
-        tokenCounts.put(type, tokenCounts.getOrDefault(type, 0) + 1);
+    private void addToken(Token token) {
+        if (token.getType() != TokenType.ERROR) {
+            tokens.add(token);
+            totalTokens++;
+            tokenCounts.put(token.getType(), tokenCounts.get(token.getType()) + 1);
+        }
     }
     
     /**
-     * Print all tokens
+     * Display all tokens
      */
-    public void printTokens() {
-        System.out.println("\n╔════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                            TOKEN LIST                                  ║");
-        System.out.println("╚════════════════════════════════════════════════════════════════════════╝\n");
+    public void displayTokens() {
+        System.out.println("\n╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                              TOKEN LIST                                      ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
         
         for (Token token : tokens) {
             if (token.getType() != TokenType.EOF) {
-                System.out.println(token.toString());
+                System.out.println(token);
             }
         }
-        
-        System.out.println();
     }
     
     /**
-     * Print statistics
+     * Display statistics
      */
-    public void printStatistics() {
-        System.out.println("\n╔════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                          SCAN STATISTICS                               ║");
-        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ Total Tokens:            %-47d ║%n", totalTokens);
-        System.out.printf("║ Lines Processed:         %-47d ║%n", linesProcessed);
-        System.out.printf("║ Comments Removed:        %-47d ║%n", commentsRemoved);
-        System.out.printf("║ Unique Identifiers:      %-47d ║%n", symbolTable.size());
-        System.out.printf("║ Errors Detected:         %-47d ║%n", errorHandler.getErrorCount());
-        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
-        System.out.println("║ Token Type Distribution:                                               ║");
-        System.out.println("╠════════════════════════════════════════════════════════════════════════╣");
+    public void displayStatistics() {
+        System.out.println("\n╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                          SCANNING STATISTICS                                 ║");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ Total Tokens: %-66d ║\n", totalTokens);
+        System.out.printf("║ Total Lines Processed: %-57d ║\n", totalLines);
+        System.out.printf("║ Comments Removed: %-60d ║\n", commentsRemoved);
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        System.out.println("║ Token Type Distribution:                                                     ║");
         
-        // Sort token types by count (descending)
-        List<Map.Entry<TokenType, Integer>> sorted = new ArrayList<>(tokenCounts.entrySet());
-        sorted.sort((a, b) -> b.getValue().compareTo(a.getValue()));
-        
-        for (Map.Entry<TokenType, Integer> entry : sorted) {
-            System.out.printf("║ %-35s : %-32d ║%n", 
-                            entry.getKey(), entry.getValue());
+        for (Map.Entry<TokenType, Integer> entry : tokenCounts.entrySet()) {
+            if (entry.getValue() > 0 && entry.getKey() != TokenType.EOF) {
+                System.out.printf("║   %-30s : %-42d ║\n", 
+                    entry.getKey().toString(), entry.getValue());
+            }
         }
-        
-        System.out.println("╚════════════════════════════════════════════════════════════════════════╝\n");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
     }
     
-    // Getters
-    public List<Token> getTokens() { return tokens; }
-    public SymbolTable getSymbolTable() { return symbolTable; }
-    public ErrorHandler getErrorHandler() { return errorHandler; }
-    public int getTotalTokens() { return totalTokens; }
-    public int getLinesProcessed() { return linesProcessed; }
-    public int getCommentsRemoved() { return commentsRemoved; }
+    /**
+     * Get token list
+     */
+    public List<Token> getTokens() {
+        return tokens;
+    }
+    
+    /**
+     * Get symbol table
+     */
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
+    }
+    
+    /**
+     * Get error handler
+     */
+    public ErrorHandler getErrorHandler() {
+        return errorHandler;
+    }
     
     /**
      * Main method for testing
      */
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Usage: java ManualScanner <source-file.nex>");
-            System.exit(1);
+            System.out.println("Usage: java ManualScanner <source_file>");
+            return;
         }
         
-        ManualScanner scanner = new ManualScanner();
-        
         try {
-            System.out.println("╔════════════════════════════════════════════════════════════════════════╗");
-            System.out.println("║              NEXUS LANGUAGE LEXICAL ANALYZER                           ║");
-            System.out.println("║                  Manual Scanner Implementation                         ║");
-            System.out.println("╚════════════════════════════════════════════════════════════════════════╝");
-            System.out.println("\nScanning file: " + args[0]);
+            // Read source file
+            String sourceCode = new String(java.nio.file.Files.readAllBytes(
+                java.nio.file.Paths.get(args[0])));
             
-            scanner.scanFile(args[0]);
+            // Create scanner and scan
+            ManualScanner scanner = new ManualScanner(sourceCode);
+            scanner.scan();
             
-            // Print results
-            scanner.printTokens();
-            scanner.printStatistics();
-            scanner.getSymbolTable().print();
-            scanner.getErrorHandler().printErrors();
+            // Display results
+            scanner.displayTokens();
+            scanner.displayStatistics();
+            scanner.getSymbolTable().display();
+            scanner.getErrorHandler().displayErrors();
             
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
-            System.exit(1);
         }
     }
 }

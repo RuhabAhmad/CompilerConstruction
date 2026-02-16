@@ -1,0 +1,98 @@
+## Test File 4: Lexical Errors
+## Testing error detection and recovery
+
+start
+    ## Valid code first
+    declare Valid_var;
+    Valid_var = 42;
+    
+    ## ERROR: Invalid identifier - starts with lowercase
+    declare invalid_identifier;
+    
+    ## ERROR: Invalid identifier - starts with digit
+    declare 2Invalid;
+    
+    ## ERROR: Invalid identifier - too long (>31 characters)
+    declare This_is_a_very_long_identifier_name_that_exceeds_limit;
+    
+    ## ERROR: Invalid characters
+    declare Test@variable;
+    declare Another$var;
+    declare Hash#var;
+    
+    ## Valid identifier for contrast
+    declare Valid_name;
+    Valid_name = 100;
+    
+    ## ERROR: Unterminated string
+    declare Bad_string;
+    Bad_string = "This string never ends
+    
+    ## Valid string after error
+    declare Good_string;
+    Good_string = "This string is terminated";
+    
+    ## ERROR: String with newline (not escaped)
+    declare Multiline_string;
+    Multiline_string = "First line
+    Second line";
+    
+    ## ERROR: Invalid escape sequence in string
+    declare Invalid_escape;
+    Invalid_escape = "Bad escape: \x";
+    
+    ## Valid string with proper escapes
+    declare Proper_escape;
+    Proper_escape = "Good escape: \n\t\\\"";
+    
+    ## ERROR: Unterminated character literal
+    declare Bad_char;
+    Bad_char = 'X;
+    
+    ## ERROR: Empty character literal
+    declare Empty_char;
+    Empty_char = '';
+    
+    ## ERROR: Multiple characters in char literal
+    declare Multi_char;
+    Multi_char = 'XY';
+    
+    ## Valid character
+    declare Good_char;
+    Good_char = 'Z';
+    
+    ## ERROR: Malformed float - no digits after decimal
+    declare Bad_float1;
+    Bad_float1 = 3.;
+    
+    ## ERROR: Malformed float - too many decimal places
+    declare Bad_float2;
+    Bad_float2 = 3.1415926535;
+    
+    ## ERROR: Malformed float - invalid exponent
+    declare Bad_float3;
+    Bad_float3 = 1.5e;
+    
+    ## Valid float for contrast
+    declare Good_float;
+    Good_float = 3.14159;
+    
+    ## ERROR: Invalid operators/symbols
+    declare X;
+    X = 5 @ 3;
+    X = 10 $ 2;
+    X = 7 & 4;
+    
+    ## Valid operators
+    X = 5 + 3;
+    X = 10 * 2;
+    
+    ## ERROR: Unclosed multi-line comment at end
+    #* This comment is never closed
+       It should generate an error
+       Missing closing *#
+    
+finish
+
+## ERROR: Some invalid characters scattered
+Test & value @ symbol $ here

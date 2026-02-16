@@ -1,0 +1,133 @@
+/**
+ * SymbolTable Class
+ * Stores and manages identifier information during lexical analysis
+ * 
+ * @author Ruhab (23i-0559), Hasan (23i-0698)
+ * @course CS4031 - Compiler Construction
+ * @assignment Assignment 1 - Lexical Analyzer
+ */
+
+import java.util.*;
+
+public class SymbolTable {
+    
+    /**
+     * Inner class to represent a symbol entry
+     */
+    private static class SymbolEntry {
+        String name;
+        String type;  // "identifier" for now, can be extended for type inference
+        int firstOccurrence;  // Line number of first occurrence
+        int frequency;  // Number of times this identifier appears
+        
+        public SymbolEntry(String name, int lineNumber) {
+            this.name = name;
+            this.type = "identifier";
+            this.firstOccurrence = lineNumber;
+            this.frequency = 1;
+        }
+        
+        public void incrementFrequency() {
+            this.frequency++;
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("%-30s %-15s %-15d %-10d", 
+                name, type, firstOccurrence, frequency);
+        }
+    }
+    
+    // HashMap to store symbols with identifier name as key
+    private Map<String, SymbolEntry> symbolMap;
+    
+    /**
+     * Constructor
+     */
+    public SymbolTable() {
+        symbolMap = new LinkedHashMap<>();  // LinkedHashMap to maintain insertion order
+    }
+    
+    /**
+     * Add or update an identifier in the symbol table
+     * @param name The identifier name
+     * @param lineNumber The line number where it appears
+     */
+    public void addIdentifier(String name, int lineNumber) {
+        if (symbolMap.containsKey(name)) {
+            // Identifier already exists, increment frequency
+            symbolMap.get(name).incrementFrequency();
+        } else {
+            // New identifier, add to table
+            symbolMap.put(name, new SymbolEntry(name, lineNumber));
+        }
+    }
+    
+    /**
+     * Check if an identifier exists in the symbol table
+     */
+    public boolean contains(String name) {
+        return symbolMap.containsKey(name);
+    }
+    
+    /**
+     * Get the frequency of an identifier
+     */
+    public int getFrequency(String name) {
+        SymbolEntry entry = symbolMap.get(name);
+        return entry != null ? entry.frequency : 0;
+    }
+    
+    /**
+     * Get the first occurrence line number of an identifier
+     */
+    public int getFirstOccurrence(String name) {
+        SymbolEntry entry = symbolMap.get(name);
+        return entry != null ? entry.firstOccurrence : -1;
+    }
+    
+    /**
+     * Get total number of unique identifiers
+     */
+    public int getUniqueIdentifierCount() {
+        return symbolMap.size();
+    }
+    
+    /**
+     * Print the symbol table in a formatted way
+     */
+    public void display() {
+        System.out.println("\n╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                              SYMBOL TABLE                                    ║");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ %-30s %-15s %-15s %-10s ║\n", 
+            "Identifier", "Type", "First Occurrence", "Frequency");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        
+        if (symbolMap.isEmpty()) {
+            System.out.println("║ No identifiers found                                                         ║");
+        } else {
+            for (SymbolEntry entry : symbolMap.values()) {
+                System.out.println("║ " + entry + " ║");
+            }
+        }
+        
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        System.out.printf("║ Total Unique Identifiers: %-52d ║\n", symbolMap.size());
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+    }
+    
+    /**
+     * Clear the symbol table
+     */
+    public void clear() {
+        symbolMap.clear();
+    }
+    
+    /**
+     * Get all identifiers as a list
+     */
+    public List<String> getAllIdentifiers() {
+        return new ArrayList<>(symbolMap.keySet());
+    }
+}

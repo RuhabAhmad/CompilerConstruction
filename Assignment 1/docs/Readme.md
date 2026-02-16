@@ -1,95 +1,120 @@
-# Nexus Programming Language - Lexical Analyzer
+# NEXUS Programming Language
+## Lexical Analyzer Implementation
 
-**CS4031 - Compiler Construction Assignment 01**
+**Course:** CS4031 - Compiler Construction  
+**Assignment:** Assignment 1 - Lexical Analyzer  
+**Team Members:**  
+- Ruhab (23i-0559)
+- Hasan (23i-0698)
 
-## Team Members
-- **Student 1**: Roll Number 1 - Section A
-- **Student 2**: Roll Number 2 - Section A
+**File Extension:** `.nexus`
 
 ---
 
 ## Table of Contents
 1. [Language Overview](#language-overview)
-2. [Language Specifications](#language-specifications)
-3. [Sample Programs](#sample-programs)
-4. [Compilation and Execution](#compilation-and-execution)
-5. [Project Structure](#project-structure)
-6. [Implementation Details](#implementation-details)
+2. [Keywords](#keywords)
+3. [Identifiers](#identifiers)
+4. [Literals](#literals)
+5. [Operators](#operators)
+6. [Punctuators](#punctuators)
+7. [Comments](#comments)
+8. [Sample Programs](#sample-programs)
+9. [Compilation and Execution](#compilation-and-execution)
+10. [Project Structure](#project-structure)
 
 ---
 
 ## Language Overview
 
-### Language Name
-**Nexus** - A modern, statically-typed programming language designed for educational purposes.
-
-### File Extension
-`.nex`
-
-### Language Philosophy
-Nexus is designed to demonstrate fundamental compiler construction concepts while maintaining a clean, readable syntax. It enforces strict lexical rules and supports modern programming constructs.
+NEXUS is a custom programming language designed for educational purposes in compiler construction. It features:
+- Case-sensitive keywords
+- Unique identifier rules (must start with uppercase)
+- Support for multiple data types
+- Rich operator set
+- Single-line and multi-line comments
 
 ---
 
-## Language Specifications
+## Keywords
 
-### 1. Keywords (Case-Sensitive)
+NEXUS has 12 reserved keywords (all case-sensitive):
 
-All keywords in Nexus are **lowercase** and **case-sensitive**.
+| Keyword | Meaning | Usage |
+|---------|---------|-------|
+| `start` | Program entry point | Marks the beginning of the program |
+| `finish` | Program exit point | Marks the end of the program |
+| `loop` | Loop construct | Creates iteration: `loop condition { ... }` |
+| `condition` | Conditional statement | If-statement: `condition expr { ... }` |
+| `declare` | Variable declaration | Declares a variable: `declare Variable_name;` |
+| `output` | Output statement | Prints to console: `output expression;` |
+| `input` | Input statement | Reads from console: `input Variable_name;` |
+| `function` | Function definition | Defines a function: `function Name(params) { ... }` |
+| `return` | Return statement | Returns from function: `return value;` |
+| `break` | Break statement | Exits loop: `break;` |
+| `continue` | Continue statement | Skips to next iteration: `continue;` |
+| `else` | Else clause | Alternative branch: `else { ... }` |
 
-| Keyword | Description |
-|---------|-------------|
-| `start` | Program entry point (like `main` in C) |
-| `finish` | Program exit point |
-| `loop` | Loop construct (infinite loop, use break to exit) |
-| `condition` | Conditional statement (like `if`) |
-| `declare` | Variable declaration |
-| `output` | Output statement (like `print`) |
-| `input` | Input statement |
-| `function` | Function declaration |
-| `return` | Return from function |
-| `break` | Break from loop |
-| `continue` | Continue to next loop iteration |
-| `else` | Alternative branch in condition |
-
-**Examples:**
+**Example:**
 ```nexus
 start
-    declare X = 10;
-    condition (X > 5) {
-        output "X is greater than 5";
-    } else {
-        output "X is 5 or less";
-    }
+    declare Counter;
+    Counter = 0;
+    
+    loop Counter < 10
+        output Counter;
+        Counter++;
+    
 finish
 ```
 
-### 2. Identifiers
+---
+
+## Identifiers
 
 **Rules:**
-- Must start with an **uppercase letter** (A-Z)
-- Followed by zero or more lowercase letters, digits, or underscores
-- Maximum length: **31 characters**
+- Must start with an uppercase letter (A-Z)
+- Can be followed by lowercase letters (a-z), digits (0-9), or underscores (_)
+- Maximum length: 31 characters
 - Case-sensitive
 
+**Regular Expression:** `[A-Z][a-z0-9_]{0,30}`
+
 **Valid Examples:**
-- `Count`
+- `Counter`
 - `Variable_name`
 - `X`
 - `Total_sum_2024`
-- `Array_index_1`
+- `My_var123`
 
 **Invalid Examples:**
-- `count` (starts with lowercase)
-- `Variable` (contains uppercase after first character)
+- `counter` (starts with lowercase)
+- `Variable` (contains uppercase after first character - wait, this is actually valid!)
 - `2Count` (starts with digit)
-- `myVariable` (contains lowercase followed by uppercase)
+- `myVariable` (starts with lowercase)
+- `This_is_a_very_long_identifier_name_that_exceeds_the_maximum_length_limit` (> 31 chars)
 
-### 3. Literals
+**Corrected Valid Examples:**
+- `Counter`
+- `Variable_name`
+- `X`
+- `Total_sum_2024`
+- `Temp`
 
-#### Integer Literals
-- **Format**: `[+-]?[0-9]+`
-- Optional sign followed by one or more digits
+**Corrected Invalid Examples:**
+- `counter` (starts with lowercase)
+- `2Count` (starts with digit)
+- `myVariable` (starts with lowercase)
+- `Variable` (actually valid)
+- `ALLCAPS` (contains uppercase letters after first - invalid per spec)
+
+---
+
+## Literals
+
+### 1. Integer Literals
+**Format:** Optional sign followed by digits  
+**Regular Expression:** `[+-]?[0-9]+`
 
 **Examples:**
 - `42`
@@ -98,16 +123,12 @@ finish
 - `0`
 
 **Invalid:**
-- `12.34` (use float instead)
-- `1,000` (no comma separators)
+- `12.34` (this is a float)
+- `1,000` (no commas allowed)
 
-#### Floating-Point Literals
-- **Format**: `[+-]?[0-9]+\.[0-9]{1,6}([eE][+-]?[0-9]+)?`
-- Optional sign
-- Integer part
-- Decimal point
-- 1 to 6 decimal digits
-- Optional exponent (e or E with optional sign and digits)
+### 2. Floating-Point Literals
+**Format:** Optional sign, digits, decimal point, 1-6 decimal digits, optional exponent  
+**Regular Expression:** `[+-]?[0-9]+\.[0-9]{1,6}([eE][+-]?[0-9]+)?`
 
 **Examples:**
 - `3.14`
@@ -115,260 +136,296 @@ finish
 - `-0.123456`
 - `1.5e10`
 - `2.0E-3`
+- `6.022e23`
 
 **Invalid:**
-- `3.` (no fractional part)
-- `.14` (no integer part)
-- `1.2345678` (more than 6 decimal digits)
+- `3.` (no digits after decimal)
+- `.14` (no digits before decimal)
+- `1.2345678` (more than 6 decimal places)
+- `1.5e` (incomplete exponent)
 
-#### String Literals
-- **Format**: Enclosed in double quotes `"`
-- **Escape Sequences**: `\"`, `\\`, `\n`, `\t`, `\r`
+### 3. String Literals
+**Format:** Double-quoted with escape sequences  
+**Regular Expression:** `"([^"\\\n]|\\["\\ntr])*"`
+
+**Supported Escape Sequences:**
+- `\"` - Double quote
+- `\\` - Backslash
+- `\n` - Newline
+- `\t` - Tab
+- `\r` - Carriage return
 
 **Examples:**
 ```nexus
 "Hello, World!"
-"Path: C:\\Users\\Data"
 "She said \"Hello\""
-"Line 1\nLine 2"
+"C:\\Users\\Student\\Desktop"
+"Line 1\nLine 2\nLine 3"
+"Column1\tColumn2\tColumn3"
 ```
 
-#### Character Literals
-- **Format**: Single character enclosed in single quotes `'`
-- **Escape Sequences**: `\'`, `\\`, `\n`, `\t`, `\r`
+### 4. Character Literals
+**Format:** Single-quoted character or escape sequence  
+**Regular Expression:** `'([^'\\\n]|\\['\\ntr])'`
+
+**Examples:**
+- `'A'`
+- `'z'`
+- `'9'`
+- `'\''` (single quote)
+- `'\\'` (backslash)
+- `'\n'` (newline)
+- `'\t'` (tab)
+
+### 5. Boolean Literals
+**Values:** `True`, `False` (case-sensitive)
 
 **Examples:**
 ```nexus
-'A'
-'5'
-'\n'
-'\t'
-'\\'
+declare Is_valid;
+Is_valid = True;
+
+declare Is_done;
+Is_done = False;
 ```
 
-#### Boolean Literals
-- **Values**: `true`, `false`
-- Case-sensitive (lowercase only)
+---
 
-**Examples:**
-```nexus
-declare Is_valid = true;
-declare Is_empty = false;
-```
+## Operators
 
-### 4. Operators
-
-#### Arithmetic Operators (Precedence: High to Low)
-
+### 1. Arithmetic Operators (Precedence: High to Low)
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `**` | Exponentiation | `2 ** 3` = 8 |
-| `*` | Multiplication | `5 * 3` = 15 |
-| `/` | Division | `10 / 2` = 5 |
-| `%` | Modulo | `10 % 3` = 1 |
-| `+` | Addition | `5 + 3` = 8 |
-| `-` | Subtraction | `5 - 3` = 2 |
+| `**` | Exponentiation | `X ** 2` |
+| `*` | Multiplication | `X * Y` |
+| `/` | Division | `X / Y` |
+| `%` | Modulus | `X % Y` |
+| `+` | Addition | `X + Y` |
+| `-` | Subtraction | `X - Y` |
 
-#### Relational Operators
-
+### 2. Relational Operators
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `==` | Equal to | `X == 10` |
-| `!=` | Not equal to | `X != 5` |
-| `<` | Less than | `X < 100` |
-| `<=` | Less than or equal | `X <= 50` |
-| `>` | Greater than | `X > 0` |
-| `>=` | Greater than or equal | `X >= 10` |
+| `==` | Equal to | `X == Y` |
+| `!=` | Not equal to | `X != Y` |
+| `<` | Less than | `X < Y` |
+| `>` | Greater than | `X > Y` |
+| `<=` | Less than or equal | `X <= Y` |
+| `>=` | Greater than or equal | `X >= Y` |
 
-#### Logical Operators
-
+### 3. Logical Operators
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `&&` | Logical AND | `true && false` = false |
-| `\|\|` | Logical OR | `true \|\| false` = true |
-| `!` | Logical NOT | `!true` = false |
+| `&&` | Logical AND | `X && Y` |
+| `\|\|` | Logical OR | `X \|\| Y` |
+| `!` | Logical NOT | `!X` |
 
-#### Assignment Operators
-
+### 4. Assignment Operators
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `=` | Simple assignment | `X = 10` |
-| `+=` | Add and assign | `X += 5` ≡ `X = X + 5` |
-| `-=` | Subtract and assign | `X -= 3` ≡ `X = X - 3` |
-| `*=` | Multiply and assign | `X *= 2` ≡ `X = X * 2` |
-| `/=` | Divide and assign | `X /= 4` ≡ `X = X / 4` |
+| `=` | Simple assignment | `X = 5` |
+| `+=` | Add and assign | `X += 5` |
+| `-=` | Subtract and assign | `X -= 5` |
+| `*=` | Multiply and assign | `X *= 5` |
+| `/=` | Divide and assign | `X /= 5` |
 
-#### Increment/Decrement Operators
-
+### 5. Increment/Decrement Operators
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `++` | Increment | `X++` or `++X` |
-| `--` | Decrement | `X--` or `--X` |
+| `++` | Increment | `Counter++` |
+| `--` | Decrement | `Counter--` |
 
-### 5. Punctuators
+**Operator Precedence (Highest to Lowest):**
+1. `**` (Exponentiation)
+2. `*`, `/`, `%` (Multiplication, Division, Modulus)
+3. `+`, `-` (Addition, Subtraction)
+4. `<`, `>`, `<=`, `>=` (Relational)
+5. `==`, `!=` (Equality)
+6. `&&` (Logical AND)
+7. `||` (Logical OR)
+8. `=`, `+=`, `-=`, `*=`, `/=` (Assignment)
 
-| Symbol | Description |
-|--------|-------------|
-| `(` `)` | Parentheses |
-| `{` `}` | Braces (code blocks) |
-| `[` `]` | Brackets (arrays) |
-| `,` | Comma (separator) |
-| `;` | Semicolon (statement terminator) |
-| `:` | Colon |
+---
 
-### 6. Comments
+## Punctuators
 
-#### Single-line Comments
-- **Syntax**: `##` followed by comment text
-- Continues until end of line
+| Symbol | Name | Usage |
+|--------|------|-------|
+| `(` `)` | Parentheses | Function calls, grouping expressions |
+| `{` `}` | Braces | Code blocks |
+| `[` `]` | Brackets | Array indexing |
+| `,` | Comma | Separator in function parameters |
+| `;` | Semicolon | Statement terminator |
+| `:` | Colon | Label or type annotation |
+
+---
+
+## Comments
+
+### Single-Line Comments
+**Syntax:** `## comment text`  
+**Description:** Starts with `##` and continues to end of line
 
 **Example:**
 ```nexus
-## This is a single-line comment
-declare X = 10;  ## Inline comment
+declare Counter;  ## This is a comment
+## This entire line is a comment
 ```
 
-#### Multi-line Comments
-- **Syntax**: Starts with `#*` and ends with `*#`
-- Can span multiple lines
-- Can contain any text except the closing sequence
+### Multi-Line Comments
+**Syntax:** `#* comment text *#`  
+**Description:** Starts with `#*` and ends with `*#`, can span multiple lines
 
 **Example:**
 ```nexus
-#*
-This is a multi-line comment.
-It can span multiple lines.
-Everything here is ignored.
-*#
+#* This is a multi-line comment
+   that spans multiple lines
+   and can contain any text *#
 ```
+
+**Note:** Multi-line comments cannot be nested in the basic implementation.
 
 ---
 
 ## Sample Programs
 
-### Sample 1: Hello World
+### Program 1: Hello World
 ```nexus
+## Hello World Program
 start
-    output "Hello, World!";
+    declare Message;
+    Message = "Hello, NEXUS World!";
+    output Message;
 finish
 ```
 
-### Sample 2: Variable Operations
+### Program 2: Factorial Calculator
 ```nexus
+## Factorial Calculator
 start
-    declare X = 10;
-    declare Y = 20;
-    declare Sum = X + Y;
+    declare N;
+    declare Result;
+    declare I;
+    
+    ## Input
+    output "Enter a number: ";
+    input N;
+    
+    ## Calculate factorial
+    Result = 1;
+    I = 1;
+    
+    loop I <= N
+        Result *= I;
+        I++;
+    
+    ## Output result
+    output "Factorial is: ";
+    output Result;
+finish
+```
+
+### Program 3: Fibonacci Sequence
+```nexus
+## Fibonacci Sequence Generator
+start
+    function Fibonacci(N)
+        declare A;
+        declare B;
+        declare C;
+        declare I;
+        
+        A = 0;
+        B = 1;
+        
+        condition N == 0
+            return A;
+        
+        condition N == 1
+            return B;
+        
+        I = 2;
+        loop I <= N
+            C = A + B;
+            A = B;
+            B = C;
+            I++;
+        
+        return B;
+    
+    ## Main program
+    declare Count;
+    declare I;
+    declare Fib_num;
+    
+    Count = 10;
+    I = 0;
+    
+    output "First 10 Fibonacci numbers:";
+    
+    loop I < Count
+        Fib_num = Fibonacci(I);
+        output Fib_num;
+        I++;
+    
+finish
+```
+
+### Program 4: Temperature Converter
+```nexus
+## Temperature Converter (Celsius to Fahrenheit)
+start
+    declare Celsius;
+    declare Fahrenheit;
+    declare Conversion_factor;
+    declare Offset;
+    
+    Conversion_factor = 1.8;
+    Offset = 32;
+    
+    output "Enter temperature in Celsius: ";
+    input Celsius;
+    
+    ## Formula: F = C * 1.8 + 32
+    Fahrenheit = Celsius * Conversion_factor + Offset;
+    
+    output "Temperature in Fahrenheit: ";
+    output Fahrenheit;
+finish
+```
+
+### Program 5: Array Operations
+```nexus
+## Array Sum and Average
+start
+    declare Numbers[10];
+    declare I;
+    declare Sum;
+    declare Average;
+    declare Count;
+    
+    Count = 10;
+    Sum = 0;
+    I = 0;
+    
+    ## Fill array
+    loop I < Count
+        Numbers[I] = I * 2 + 1;
+        I++;
+    
+    ## Calculate sum
+    I = 0;
+    loop I < Count
+        Sum += Numbers[I];
+        I++;
+    
+    ## Calculate average
+    Average = Sum / Count;
     
     output "Sum: ";
     output Sum;
-finish
-```
-
-### Sample 3: Conditional Logic
-```nexus
-start
-    declare Age;
-    input Age;
-    
-    condition (Age >= 18) {
-        output "You are an adult";
-    } else {
-        output "You are a minor";
-    }
-finish
-```
-
-### Sample 4: Loop Example
-```nexus
-start
-    declare I = 0;
-    
-    loop {
-        output I;
-        I++;
-        
-        condition (I >= 10) {
-            break;
-        }
-    }
-    
-    output "Loop finished";
-finish
-```
-
-### Sample 5: Function Example
-```nexus
-start
-    declare Result = Calculate_factorial(5);
-    output Result;
-finish
-
-function Calculate_factorial(N) {
-    declare Fact = 1;
-    declare I = 1;
-    
-    loop {
-        condition (I > N) {
-            break;
-        }
-        
-        Fact *= I;
-        I++;
-    }
-    
-    return Fact;
-}
-```
-
-### Sample 6: Array Operations
-```nexus
-start
-    declare Numbers[10];
-    declare I = 0;
-    
-    ## Initialize array
-    loop {
-        condition (I >= 10) {
-            break;
-        }
-        
-        Numbers[I] = I * 2;
-        I++;
-    }
-    
-    ## Print array
-    I = 0;
-    loop {
-        condition (I >= 10) {
-            break;
-        }
-        
-        output Numbers[I];
-        I++;
-    }
-finish
-```
-
-### Sample 7: Complex Expression
-```nexus
-start
-    declare A = 5;
-    declare B = 10;
-    declare C = 15;
-    
-    ## Calculate quadratic expression
-    declare Result = A * B ** 2 + B * C - C / A;
-    
-    output "Result: ";
-    output Result;
-    
-    ## Comparison
-    condition (Result > 100 && Result < 1000) {
-        output "Result is in range";
-    } else {
-        output "Result is out of range";
-    }
+    output "Average: ";
+    output Average;
 finish
 ```
 
@@ -377,46 +434,79 @@ finish
 ## Compilation and Execution
 
 ### Prerequisites
-- Java JDK 8 or higher
-- JFlex (for JFlex implementation)
+- Java Development Kit (JDK) 8 or higher
+- JFlex 1.8.2 or higher (for JFlex implementation)
 
-### Manual Scanner Compilation
+### Manual Scanner
 
+#### Compilation
 ```bash
-# Navigate to src directory
 cd src
-
-# Compile all Java files
-javac *.java
-
-# Run the manual scanner
-java ManualScanner ../tests/test1.nex
+javac TokenType.java Token.java SymbolTable.java ErrorHandler.java ManualScanner.java
 ```
 
-### JFlex Scanner Compilation
-
+#### Execution
 ```bash
-# Navigate to src directory
+java ManualScanner ../tests/test1.nexus
+```
+
+### JFlex Scanner
+
+#### Generate Scanner
+```bash
 cd src
-
-# Generate Yylex.java from Scanner.flex
 jflex Scanner.flex
+```
 
-# Compile all Java files
-javac *.java
+This generates `Yylex.java`.
 
-# Run the JFlex scanner
-java Yylex ../tests/test1.nex
+#### Compilation
+```bash
+javac TokenType.java Token.java SymbolTable.java ErrorHandler.java Yylex.java
+```
+
+#### Creating a Test Driver
+Create a file `JFlexDriver.java`:
+```java
+import java.io.*;
+
+public class JFlexDriver {
+    public static void main(String[] args) throws Exception {
+        Yylex scanner = new Yylex(new FileReader(args[0]));
+        Token token;
+        
+        while ((token = scanner.yylex()) != null) {
+            if (token.getType() != TokenType.EOF) {
+                System.out.println(token);
+            }
+        }
+        
+        scanner.getSymbolTable().display();
+        scanner.getErrorHandler().displayErrors();
+    }
+}
+```
+
+#### Execution
+```bash
+javac JFlexDriver.java
+java JFlexDriver ../tests/test1.nexus
 ```
 
 ### Running All Tests
-
 ```bash
-# Test all files
-for file in ../tests/*.nex; do
-    echo "Testing: $file"
-    java ManualScanner "$file"
-    echo "-----------------------------------"
+# Manual Scanner
+for test in ../tests/*.nexus; do
+    echo "Testing $test"
+    java ManualScanner "$test"
+    echo "---"
+done
+
+# JFlex Scanner (after creating driver)
+for test in ../tests/*.nexus; do
+    echo "Testing $test"
+    java JFlexDriver "$test"
+    echo "---"
 done
 ```
 
@@ -425,159 +515,122 @@ done
 ## Project Structure
 
 ```
-nexus-compiler/
-│
+23i-0559-23i-0698-A/
 ├── src/
-│   ├── ManualScanner.java       # Manual DFA-based scanner
-│   ├── Token.java                # Token class
-│   ├── TokenType.java            # Token type enumeration
-│   ├── SymbolTable.java          # Symbol table implementation
-│   ├── ErrorHandler.java         # Error detection and reporting
-│   ├── Scanner.flex              # JFlex specification
-│   └── Yylex.java                # Generated by JFlex
-│
+│   ├── ManualScanner.java      # Manual DFA-based scanner
+│   ├── Token.java               # Token class
+│   ├── TokenType.java           # Token type enumeration
+│   ├── SymbolTable.java         # Symbol table implementation
+│   ├── ErrorHandler.java        # Error handling
+│   ├── Scanner.flex             # JFlex specification
+│   └── Yylex.java               # Generated JFlex scanner
 ├── docs/
-│   ├── Automata_Design.pdf       # NFA/DFA diagrams and transition tables
-│   ├── Comparison.pdf            # Scanner comparison document
-│   ├── README.md                 # This file
-│   └── LanguageGrammar.txt       # Formal grammar specification
-│
+│   ├── Automata_Design.pdf      # NFA/DFA designs
+│   ├── Comparison.pdf           # Scanner comparison
+│   └── LanguageGrammar.txt      # Formal grammar
 ├── tests/
-│   ├── test1.nex                 # All valid tokens
-│   ├── test2.nex                 # Complex expressions
-│   ├── test3.nex                 # Strings/chars with escapes
-│   ├── test4.nex                 # Lexical errors
-│   ├── test5.nex                 # Comments
-│   └── TestResults.txt           # Test execution results
-│
-└── README.md                     # Project readme (this file)
+│   ├── test1.nexus              # All valid tokens
+│   ├── test2.nexus              # Complex expressions
+│   ├── test3.nexus              # String/char escapes
+│   ├── test4.nexus              # Lexical errors
+│   ├── test5.nexus              # Comments
+│   └── TestResults.txt          # Test execution results
+└── README.md                    # This file
 ```
 
 ---
 
-## Implementation Details
+## Features Implemented
 
-### Token Recognition Order
+### Part 1: Manual Scanner (60 marks)
+- ✅ Regular expressions for all token types
+- ✅ NFA diagrams for required tokens
+- ✅ Minimized DFA with transition tables
+- ✅ DFA-based token recognition
+- ✅ Longest match principle
+- ✅ Whitespace handling with line/column tracking
+- ✅ Formatted token output
+- ✅ Comprehensive statistics
+- ✅ Symbol table with identifier tracking
 
-The scanner checks patterns in the following priority order (critical for correct tokenization):
+### Part 2: JFlex Implementation (30 marks)
+- ✅ Complete JFlex specification
+- ✅ Compatible token class
+- ✅ Output comparison documentation
 
-1. **Multi-line comments** (`#*...*#`)
-2. **Single-line comments** (`##...`)
-3. **Multi-character operators** (`**`, `==`, `!=`, `<=`, `>=`, `&&`, `||`, `++`, `--`, `+=`, `-=`, `*=`, `/=`)
-4. **Keywords** (start, finish, loop, etc.)
-5. **Boolean literals** (true, false)
-6. **Identifiers** ([A-Z][a-z0-9_]{0,30})
-7. **Floating-point literals** (must come before integers)
-8. **Integer literals**
-9. **String literals**
-10. **Character literals**
-11. **Single-character operators** (+, -, *, /, %, <, >, =, !)
-12. **Punctuators** (, ), {, }, [, ], ,, ;, :)
-13. **Whitespace** (skip but track line numbers)
+### Part 3: Error Handling (10 marks)
+- ✅ Invalid character detection
+- ✅ Malformed literal detection
+- ✅ Invalid identifier detection
+- ✅ Unclosed comment detection
+- ✅ Formatted error reporting
+- ✅ Error recovery and continuation
 
-### DFA-Based Approach
+### Bonus Features
+- ✅ GitHub repository with commit history
+- ✅ Comprehensive test suite
+- ✅ Well-documented code
+- ✅ Professional output formatting
 
-The manual scanner implements a deterministic finite automaton (DFA) approach for each token type:
+---
 
-- **State-based recognition**: Each token type has its own recognition logic
-- **Longest match**: Always matches the longest possible token
-- **Backtracking**: Supports backtracking when needed (e.g., distinguishing floats from integers)
-- **Error recovery**: Continues scanning after errors to report all issues
+## Pattern Matching Priority
 
-### Symbol Table
+The scanner checks patterns in this order to avoid ambiguity:
 
-The symbol table stores information about identifiers:
-- Identifier name
-- Type (currently just "IDENTIFIER")
-- First occurrence (line number)
-- Frequency (number of occurrences)
+1. Multi-line comments (`#* ... *#`)
+2. Single-line comments (`##...`)
+3. Multi-character operators (`**`, `==`, `!=`, `<=`, `>=`, `&&`, `||`, `++`, `--`, `+=`, `-=`, `*=`, `/=`)
+4. Keywords (`start`, `finish`, etc.)
+5. Boolean literals (`True`, `False`)
+6. Identifiers (`[A-Z][a-z0-9_]{0,30}`)
+7. Floating-point literals (with decimal point)
+8. Integer literals
+9. String literals
+10. Character literals
+11. Single-character operators
+12. Punctuators
+13. Whitespace
 
-### Error Handling
+---
 
-The error handler detects and reports:
-- Invalid characters
-- Malformed literals
-- Invalid identifiers
-- Unterminated strings/chars
-- Unclosed multi-line comments
-- Invalid escape sequences
+## Error Messages
 
-All errors include:
-- Error type
-- Line and column numbers
+The scanner provides detailed error messages with:
+- Error type (INVALID_CHARACTER, MALFORMED_FLOAT, etc.)
+- Line and column number
 - Problematic lexeme
 - Descriptive reason
 
----
-
-## Testing
-
-### Test Coverage
-
-1. **test1.nex**: Comprehensive test of all valid token types
-2. **test2.nex**: Complex expressions and nested structures
-3. **test3.nex**: Extensive string and character literal testing
-4. **test4.nex**: Various lexical error scenarios
-5. **test5.nex**: Comprehensive comment testing
-
-### Expected Output
-
-The scanner produces:
-1. **Token List**: All recognized tokens with line/column information
-2. **Statistics**: Token counts, lines processed, comments removed
-3. **Symbol Table**: Unique identifiers with occurrence information
-4. **Error Report**: Detailed error information (if any errors found)
+**Example:**
+```
+[INVALID_CHARACTER] Line 5, Col 12: '@' - Invalid character '@' (ASCII: 64)
+[UNTERMINATED_STRING] Line 8, Col 15: "Hello - String literal not terminated before end of line
+[INVALID_IDENTIFIER] Line 10, Col 5: 'counter' - Identifier must start with uppercase letter
+```
 
 ---
 
-## Features
+## Notes
 
-### Implemented Features
-- ✅ Complete DFA-based manual scanner
-- ✅ JFlex-based scanner for validation
-- ✅ All token types from specification
-- ✅ Comprehensive error handling
-- ✅ Symbol table with identifier tracking
-- ✅ Detailed statistics reporting
-- ✅ Proper escape sequence handling
-- ✅ Comment removal and tracking
-- ✅ Line and column tracking
-- ✅ Multi-character operator recognition
-
-### Design Decisions
-
-1. **Uppercase Identifiers**: Enforces code readability and distinguishes identifiers from keywords
-2. **Strict Float Format**: Prevents precision ambiguity
-3. **Limited Escape Sequences**: Keeps the language simple while supporting essential formatting
-4. **Comment Syntax**: Uses `##` and `#*...*#` to avoid conflicts with typical operators
-5. **Case-Sensitive Keywords**: Maintains consistency and prevents ambiguity
+- All keywords are case-sensitive
+- Identifiers MUST start with uppercase letter
+- Maximum identifier length is 31 characters
+- Floating-point decimals limited to 6 digits
+- Comments are removed during scanning
+- Whitespace is tracked for line/column numbers
+- Symbol table tracks first occurrence and frequency of identifiers
 
 ---
 
-## Future Enhancements
+## Contact
 
-Potential extensions for future assignments:
-- Semantic analyzer
-- Parser (syntax analysis)
-- Intermediate code generation
-- Optimization passes
-- Code generation
+For questions or issues:
+- Ruhab: 23i-0559
+- Hasan: 23i-0698
 
 ---
 
 ## License
 
 This project is created for educational purposes as part of CS4031 - Compiler Construction course.
-
----
-
-## Acknowledgments
-
-- Course: CS4031 - Compiler Construction
-- Assignment: 01 - Lexical Analyzer Implementation
-- Semester: Spring 2026
-- Textbook: Compilers: Principles, Techniques, and Tools (Dragon Book) by Aho, Lam, Sethi, and Ullman
-
----
-
-**Last Updated**: February 2026

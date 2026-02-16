@@ -1,27 +1,32 @@
 package tokens;
 
 /**
- * Token Class - Represents a single token in the Nexus language
- * CS4031 - Compiler Construction Assignment 01
+ * Token Class
+ * Represents a single token recognized by the lexical analyzer
+ * 
+ * @author Ruhab (23i-0559), Hasan (23i-0698)
+ * @course CS4031 - Compiler Construction
+ * @assignment Assignment 1 - Lexical Analyzer
  */
+
 public class Token {
-    private final TokenType type;
-    private final String lexeme;
-    private final int line;
-    private final int column;
+    private TokenType type;
+    private String lexeme;
+    private int lineNumber;
+    private int columnNumber;
     
     /**
      * Constructor for Token
      * @param type The type of the token
-     * @param lexeme The actual text of the token
-     * @param line Line number where token appears
-     * @param column Column number where token starts
+     * @param lexeme The actual string value
+     * @param lineNumber Line number where token appears
+     * @param columnNumber Column number where token starts
      */
-    public Token(TokenType type, String lexeme, int line, int column) {
+    public Token(TokenType type, String lexeme, int lineNumber, int columnNumber) {
         this.type = type;
         this.lexeme = lexeme;
-        this.line = line;
-        this.column = column;
+        this.lineNumber = lineNumber;
+        this.columnNumber = columnNumber;
     }
     
     // Getters
@@ -33,49 +38,69 @@ public class Token {
         return lexeme;
     }
     
-    public int getLine() {
-        return line;
+    public int getLineNumber() {
+        return lineNumber;
     }
     
-    public int getColumn() {
-        return column;
+    public int getColumnNumber() {
+        return columnNumber;
     }
     
     /**
-     * Returns a string representation of the token
+     * Returns formatted string representation of the token
      * Format: <TOKEN_TYPE, "lexeme", Line: X, Col: Y>
      */
     @Override
     public String toString() {
-        return String.format("<%s, \"%s\", Line: %d, Col: %d>", 
-                           type, lexeme, line, column);
+        return String.format("<%s, \"%s\", Line: %d, Col: %d>",
+            type.toString(),
+            lexeme,
+            lineNumber,
+            columnNumber
+        );
     }
     
     /**
-     * Returns a compact string representation for display
+     * Checks if this token is of a specific type
      */
-    public String toCompactString() {
-        return String.format("%-20s %-15s L:%d C:%d", 
-                           type, "\"" + lexeme + "\"", line, column);
+    public boolean isOfType(TokenType type) {
+        return this.type == type;
     }
     
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Token token = (Token) obj;
-        return line == token.line && 
-               column == token.column && 
-               type == token.type && 
-               lexeme.equals(token.lexeme);
+    /**
+     * Checks if this token is a keyword
+     */
+    public boolean isKeyword() {
+        return type == TokenType.KEYWORD;
     }
     
-    @Override
-    public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + lexeme.hashCode();
-        result = 31 * result + line;
-        result = 31 * result + column;
-        return result;
+    /**
+     * Checks if this token is an identifier
+     */
+    public boolean isIdentifier() {
+        return type == TokenType.IDENTIFIER;
+    }
+    
+    /**
+     * Checks if this token is a literal
+     */
+    public boolean isLiteral() {
+        return type == TokenType.INTEGER_LITERAL ||
+               type == TokenType.FLOAT_LITERAL ||
+               type == TokenType.STRING_LITERAL ||
+               type == TokenType.CHAR_LITERAL ||
+               type == TokenType.BOOLEAN_LITERAL;
+    }
+    
+    /**
+     * Checks if this token is an operator
+     */
+    public boolean isOperator() {
+        return type == TokenType.ARITHMETIC_OP ||
+               type == TokenType.RELATIONAL_OP ||
+               type == TokenType.LOGICAL_OP ||
+               type == TokenType.ASSIGNMENT_OP ||
+               type == TokenType.INCREMENT_OP ||
+               type == TokenType.DECREMENT_OP;
     }
 }
