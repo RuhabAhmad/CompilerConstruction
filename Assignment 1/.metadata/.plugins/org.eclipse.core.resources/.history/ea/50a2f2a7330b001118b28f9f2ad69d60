@@ -1,0 +1,33 @@
+package main;
+
+import scanner.ManualScanner;
+import tokens.Token;
+import tokens.TokenType;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
+public class MainManual {
+    public static void main(String[] args) throws Exception {
+
+        // Read source code
+        String input = Files.readString(Paths.get("tests/test1.nexus"));
+
+        // Create manual scanner
+        ManualScanner scanner = new ManualScanner(input);
+
+        // Scan / tokenize the input
+        List<Token> tokens = scanner.scan();
+
+        // Print each token (like Yylex)
+        for (Token token : tokens) {
+            System.out.println(token);
+        }
+
+        // Print statistics
+        System.out.println("\nTotal Tokens: " + scanner.getTokens().size());
+        System.out.println("Lines Processed: " + scanner.totalLines);
+        System.out.println("Comments Removed: " + scanner.commentsRemoved);
+    }
+}

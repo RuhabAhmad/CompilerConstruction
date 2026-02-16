@@ -32,6 +32,14 @@ public class ManualScanner {
     private int totalLines;
     private int commentsRemoved;
     
+    public int getTotalLines() {
+        return totalLines;
+    }
+
+    public int getCommentsRemoved() {
+        return commentsRemoved;
+    }
+    
     // Keywords set for quick lookup
     private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
         "start", "finish", "loop", "condition", "declare", "output", 

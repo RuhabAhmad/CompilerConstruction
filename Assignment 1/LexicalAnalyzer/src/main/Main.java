@@ -6,13 +6,18 @@ import java.io.FileReader;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-
-        Yylex lexer = new Yylex(new FileReader("tests/test2.nexus"));
+        Yylex lexer = new Yylex(new FileReader("tests/test1.nexus"));
 
         Token token;
 
         while (true) {
             token = lexer.yylex();
+
+            if (token == null) {
+                // Option 1: Treat null as EOF
+                break;
+            }
+
             System.out.println(token);
 
             if (token.getType() == TokenType.EOF) {
