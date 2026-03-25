@@ -1,0 +1,3 @@
+EN -> EN + T | T
+T -> T * F | F
+F -> ( EN ) | id

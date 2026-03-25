@@ -1,0 +1,142 @@
+## Test File 3: String and Character Literals with Escape Sequences
+## Testing various escape sequences and special cases
+
+start
+    ## Basic strings
+    declare Simple_string;
+    Simple_string = "Hello World";
+    output Simple_string;
+    
+    ## Strings with escape sequences
+    declare Quote_string;
+    declare Path_string;
+    declare Newline_string;
+    declare Tab_string;
+    
+    ## Escaped quotes
+    Quote_string = "She said \"Hello\" to me";
+    output Quote_string;
+    
+    Quote_string = "It's a \"beautiful\" day";
+    output Quote_string;
+    
+    ## Escaped backslashes
+    Path_string = "C:\\Users\\Student\\Desktop\\file.txt";
+    output Path_string;
+    
+    Path_string = "\\\\server\\share\\folder\\file.doc";
+    output Path_string;
+    
+    ## Newline escape
+    Newline_string = "First line\nSecond line\nThird line";
+    output Newline_string;
+    
+    ## Tab escape
+    Tab_string = "Name:\tJohn\tDoe";
+    output Tab_string;
+    
+    Tab_string = "Column1\tColumn2\tColumn3";
+    output Tab_string;
+    
+    ## Carriage return
+    declare Return_string;
+    Return_string = "Line 1\rLine 2\rLine 3";
+    output Return_string;
+    
+    ## Combined escapes
+    declare Complex_string;
+    Complex_string = "Path: \"C:\\Users\\Name\"\nStatus: OK\tResult: Pass";
+    output Complex_string;
+    
+    ## Character literals - basic
+    declare Ch1;
+    declare Ch2;
+    declare Ch3;
+    
+    Ch1 = 'A';
+    Ch2 = 'z';
+    Ch3 = '9';
+    
+    output Ch1;
+    output Ch2;
+    output Ch3;
+    
+    ## Character literals with escapes
+    declare Quote_char;
+    declare Backslash_char;
+    declare Newline_char;
+    declare Tab_char;
+    declare Return_char;
+    
+    Quote_char = '\'';
+    output Quote_char;
+    
+    Backslash_char = '\\';
+    output Backslash_char;
+    
+    Newline_char = '\n';
+    output Newline_char;
+    
+    Tab_char = '\t';
+    output Tab_char;
+    
+    Return_char = '\r';
+    output Return_char;
+    
+    ## Special characters in strings
+    declare Special1;
+    declare Special2;
+    declare Special3;
+    
+    Special1 = "Numbers: 0123456789";
+    Special2 = "Symbols: !@#$%^&*()_+-=[]{}|;:,.<>?";
+    Special3 = "Mixed: ABC123xyz!@#";
+    
+    ## Empty-looking but valid strings (with spaces)
+    declare Space_string;
+    Space_string = "   ";
+    output Space_string;
+    
+    ## Long strings
+    declare Long_string;
+    Long_string = "This is a very long string that contains multiple words and demonstrates the scanner's ability to handle longer text sequences properly.";
+    output Long_string;
+    
+    ## Multiple escape sequences in sequence
+    declare Multi_escape;
+    Multi_escape = "\"\\\n\t\r";
+    output Multi_escape;
+    
+    ## Strings with quotes and backslashes mixed
+    declare Mixed1;
+    declare Mixed2;
+    
+    Mixed1 = "He said \"Use \\ for paths\"";
+    Mixed2 = "Path: \"C:\\Program Files\\App\\data.txt\"";
+    
+    output Mixed1;
+    output Mixed2;
+    
+    ## Testing all printable characters
+    declare Alphabet_lower;
+    declare Alphabet_upper;
+    declare Digits;
+    
+    Alphabet_lower = "abcdefghijklmnopqrstuvwxyz";
+    Alphabet_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    Digits = "0123456789";
+    
+    output Alphabet_lower;
+    output Alphabet_upper;
+    output Digits;
+    
+finish
+
+#* 
+   This test file focuses on:
+   1. Basic string literals
+   2. Escape sequences: \", \\, \n, \t, \r
+   3. Character literals with escapes
+   4. Complex combinations of escapes
+   5. Edge cases and special scenarios
+*#

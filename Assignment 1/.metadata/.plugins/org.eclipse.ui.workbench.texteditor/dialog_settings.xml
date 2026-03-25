@@ -8,6 +8,11 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="false"/>
 		<list key="findhistory">
+			<item value="addTok"/>
+			<item value="scanW"/>
+			<item value="get"/>
+			<item value="strin"/>
+			<item value="addT"/>
 			<item value="scan"/>
 			<item value="multi"/>
 			<item value="newline"/>

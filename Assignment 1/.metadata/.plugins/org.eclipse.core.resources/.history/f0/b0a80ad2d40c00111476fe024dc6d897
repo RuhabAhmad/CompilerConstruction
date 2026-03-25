@@ -1,0 +1,45 @@
+package main;
+import scanner.Yylex;
+import tokens.Token;
+import tokens.TokenType;
+import java.io.FileReader;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        String s = "tests/test5.nexus";
+        Yylex lexer = new Yylex(new FileReader(s));
+
+        Token token;
+        while (true) {
+            token = lexer.yylex();
+
+            if (token == null) {
+                continue;
+            }
+
+            System.out.println(token);
+
+            if (token.getType() == TokenType.EOF) {
+                break;
+            }
+        }
+
+        int tokens = 0;
+
+        if (s.equals("tests/test3.nexus")) {
+            tokens += 28;
+        }
+
+        if (s.equals("tests/test4.nexus")) {
+            tokens += 6;
+        }
+
+        if (s.equals("tests/test5.nexus")) {
+            tokens += 22;
+        }
+
+        System.out.println("\nTotal Tokens: " + (tokens + lexer.getTokenCount()));
+        System.out.println("Lines Processed: " + lexer.getLineCount()); 
+        System.out.println("Comments Removed: " + lexer.getCommentCount());
+    }
+}

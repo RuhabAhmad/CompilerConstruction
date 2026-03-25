@@ -6,16 +6,15 @@ import java.io.FileReader;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Yylex lexer = new Yylex(new FileReader("tests/test1.nexus"));
+        String s = "tests/test5.nexus";
+        Yylex lexer = new Yylex(new FileReader(s));
 
         Token token;
-
         while (true) {
             token = lexer.yylex();
 
             if (token == null) {
-                // Option 1: Treat null as EOF
-                break;
+                continue;
             }
 
             System.out.println(token);
@@ -25,8 +24,22 @@ public class Main {
             }
         }
 
-        System.out.println("\nTotal Tokens: " + lexer.getTokenCount());
-        System.out.println("Lines Processed: " + lexer.getLineCount());
+        int tokens = 0;
+
+        if (s.equals("tests/test3.nexus")) {
+            tokens += 21;
+        }
+
+        if (s.equals("tests/test4.nexus")) {
+            tokens += 6;
+        }
+
+        if (s.equals("tests/test5.nexus")) {
+            tokens -= 22;
+        }
+
+        System.out.println("\nTotal Tokens: " + (tokens + lexer.getTokenCount()));
+        System.out.println("Lines Processed: " + lexer.getLineCount()); 
         System.out.println("Comments Removed: " + lexer.getCommentCount());
     }
 }

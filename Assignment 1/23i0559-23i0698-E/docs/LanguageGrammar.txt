@@ -1,0 +1,375 @@
+================================================================================
+                    NEXUS PROGRAMMING LANGUAGE
+                      FORMAL GRAMMAR SPECIFICATION
+================================================================================
+
+Authors: Ruhab (23i-0559), Hasan (23i-0698)
+Course: CS4031 - Compiler Construction
+Assignment: Assignment 1 - Lexical Analyzer
+File Extension: .nexus
+
+================================================================================
+                        LEXICAL GRAMMAR (TOKENS)
+================================================================================
+
+1. KEYWORDS (Case-Sensitive, Reserved Words)
+   ---------------------------------------------
+   keyword ::= 'start' | 'finish' | 'loop' | 'condition' | 'declare' 
+             | 'output' | 'input' | 'function' | 'return' | 'break' 
+             | 'continue' | 'else'
+
+   Total Keywords: 12
+
+
+2. IDENTIFIERS
+   ---------------------------------------------
+   identifier ::= UPPERCASE (lowercase | digit | '_')*
+   
+   Where:
+     UPPERCASE ::= [A-Z]
+     lowercase ::= [a-z]
+     digit     ::= [0-9]
+   
+   Constraints:
+     - Must start with uppercase letter (A-Z)
+     - Followed by zero or more lowercase letters, digits, or underscores
+     - Maximum length: 31 characters
+   
+   Regular Expression: [A-Z][a-z0-9_]{0,30}
+   
+   Examples:
+     Valid:   Counter, Variable_name, X, Total_sum_2024, My_var
+     Invalid: counter (lowercase start), 2Count (digit start), 
+              myVariable (lowercase start)
+
+
+3. LITERALS
+   ---------------------------------------------
+
+   3.1 INTEGER LITERALS
+       integer_literal ::= ['+' | '-']? digit+
+       
+       Regular Expression: [+-]?[0-9]+
+       
+       Examples: 42, +100, -567, 0, 12345
+
+   3.2 FLOATING-POINT LITERALS
+       float_literal ::= ['+' | '-']? digit+ '.' digit{1,6} exponent?
+       exponent      ::= ('e' | 'E') ['+' | '-']? digit+
+       
+       Regular Expression: [+-]?[0-9]+\.[0-9]{1,6}([eE][+-]?[0-9]+)?
+       
+       Constraints:
+         - Must have at least one digit before decimal point
+         - Must have 1-6 digits after decimal point
+         - Exponent is optional
+       
+       Examples: 3.14, +2.5, -0.123456, 1.5e10, 2.0E-3
+
+   3.3 STRING LITERALS
+       string_literal ::= '"' string_char* '"'
+       string_char    ::= any_char_except_quote_backslash_newline | escape_seq
+       escape_seq     ::= '\' ('"' | '\' | 'n' | 't' | 'r')
+       
+       Regular Expression: "([^"\\\n]|\\["\\ntr])*"
+       
+       Supported Escape Sequences:
+         \" - Double quote
+         \\ - Backslash
+         \n - Newline
+         \t - Tab
+         \r - Carriage return
+       
+       Examples: 
+         "Hello World"
+         "She said \"Hi\""
+         "C:\\Users\\Name"
+         "Line1\nLine2"
+
+   3.4 CHARACTER LITERALS
+       char_literal ::= ''' char_char '''
+       char_char    ::= any_char_except_quote_backslash_newline | char_escape
+       char_escape  ::= '\' (''' | '\' | 'n' | 't' | 'r')
+       
+       Regular Expression: '([^'\\\n]|\\['\\ntr])'
+       
+       Examples: 'A', 'z', '9', '\'', '\\', '\n', '\t'
+
+   3.5 BOOLEAN LITERALS
+       boolean_literal ::= 'True' | 'False'
+       
+       Note: Case-sensitive
+       
+       Examples: True, False
+
+
+4. OPERATORS
+   ---------------------------------------------
+
+   4.1 ARITHMETIC OPERATORS
+       arithmetic_op ::= '**' | '*' | '/' | '%' | '+' | '-'
+       
+       Operator Precedence (High to Low):
+         ** (Exponentiation)
+         *, /, % (Multiplication, Division, Modulus)
+         +, - (Addition, Subtraction)
+
+   4.2 RELATIONAL OPERATORS
+       relational_op ::= '==' | '!=' | '<=' | '>=' | '<' | '>'
+
+   4.3 LOGICAL OPERATORS
+       logical_op ::= '&&' | '||' | '!'
+
+   4.4 ASSIGNMENT OPERATORS
+       assignment_op ::= '=' | '+=' | '-=' | '*=' | '/='
+
+   4.5 INCREMENT/DECREMENT OPERATORS
+       increment_op ::= '++'
+       decrement_op ::= '--'
+
+
+5. PUNCTUATORS
+   ---------------------------------------------
+   punctuator ::= '(' | ')' | '{' | '}' | '[' | ']' | ',' | ';' | ':'
+
+
+6. COMMENTS
+   ---------------------------------------------
+
+   6.1 SINGLE-LINE COMMENT
+       single_comment ::= '##' any_char_except_newline*
+       
+       Regular Expression: ##[^\n]*
+       
+       Description: Starts with ## and continues to end of line
+
+   6.2 MULTI-LINE COMMENT
+       multi_comment ::= '#*' comment_body '*#'
+       comment_body  ::= (any_char_except_star | '*'+ not_followed_by_hash)*
+       
+       Regular Expression: #\*([^*]|\*+[^*#])*\*+#
+       
+       Description: Starts with #* and ends with *#
+       Note: Cannot be nested in basic implementation
+
+
+7. WHITESPACE
+   ---------------------------------------------
+   whitespace ::= ' ' | '\t' | '\r' | '\n'
+   
+   Regular Expression: [ \t\r\n]+
+   
+   Note: Whitespace is skipped during scanning but tracked for line/column 
+         numbers. Preserved within string literals.
+
+
+================================================================================
+                        PATTERN MATCHING PRIORITY
+================================================================================
+
+To avoid ambiguity, patterns are checked in the following order:
+
+  1. Multi-line comments      (#* ... *#)
+  2. Single-line comments     (##...)
+  3. Multi-character operators (**,==,!=,<=,>=,&&,||,++,--,+=,-=,*=,/=)
+  4. Keywords                  (start, finish, loop, etc.)
+  5. Boolean literals          (True, False)
+  6. Identifiers               ([A-Z][a-z0-9_]{0,30})
+  7. Floating-point literals   (digits.digits with optional exponent)
+  8. Integer literals          (digits)
+  9. String literals           ("...")
+ 10. Character literals        ('.')
+ 11. Single-character operators (+,-,*,/,%,<,>,=,!)
+ 12. Punctuators               ((){}[],:;)
+ 13. Whitespace                (space, tab, newline, carriage return)
+
+================================================================================
+                      SYNTACTIC GRAMMAR (STRUCTURE)
+================================================================================
+
+Note: This section describes the expected program structure, though full 
+      syntactic analysis is beyond the scope of lexical analysis.
+
+Program Structure:
+   program ::= 'start' statement_list 'finish'
+
+Statements:
+   statement ::= declaration
+               | assignment
+               | input_stmt
+               | output_stmt
+               | condition_stmt
+               | loop_stmt
+               | function_def
+               | return_stmt
+               | break_stmt
+               | continue_stmt
+
+   declaration   ::= 'declare' identifier ';'
+                   | 'declare' identifier '[' integer ']' ';'
+   
+   assignment    ::= identifier '=' expression ';'
+                   | identifier compound_assign_op expression ';'
+                   | identifier ('++' | '--') ';'
+   
+   input_stmt    ::= 'input' identifier ';'
+   
+   output_stmt   ::= 'output' expression ';'
+   
+   condition_stmt ::= 'condition' expression statement_block
+                    | 'condition' expression statement_block 'else' statement_block
+   
+   loop_stmt     ::= 'loop' expression statement_block
+   
+   function_def  ::= 'function' identifier '(' param_list? ')' statement_block
+   
+   return_stmt   ::= 'return' expression? ';'
+   
+   break_stmt    ::= 'break' ';'
+   
+   continue_stmt ::= 'continue' ';'
+
+Expressions:
+   expression ::= term (('+' | '-') term)*
+   
+   term       ::= factor (('*' | '/' | '%') factor)*
+   
+   factor     ::= base ('**' base)*
+   
+   base       ::= literal
+                | identifier
+                | identifier '[' expression ']'
+                | identifier '(' arg_list? ')'
+                | '(' expression ')'
+                | unary_op base
+   
+   literal    ::= integer_literal
+                | float_literal
+                | string_literal
+                | char_literal
+                | boolean_literal
+
+Other Constructs:
+   statement_block ::= statement | '{' statement_list '}'
+   
+   statement_list  ::= statement*
+   
+   param_list      ::= identifier (',' identifier)*
+   
+   arg_list        ::= expression (',' expression)*
+   
+   unary_op        ::= '+' | '-' | '!'
+   
+   compound_assign_op ::= '+=' | '-=' | '*=' | '/='
+
+================================================================================
+                          TOKEN SPECIFICATIONS
+================================================================================
+
+Token Format:
+   <TOKEN_TYPE, "lexeme", Line: line_number, Col: column_number>
+
+Token Types:
+   - KEYWORD
+   - IDENTIFIER
+   - INTEGER_LITERAL
+   - FLOAT_LITERAL
+   - STRING_LITERAL
+   - CHAR_LITERAL
+   - BOOLEAN_LITERAL
+   - ARITHMETIC_OP
+   - RELATIONAL_OP
+   - LOGICAL_OP
+   - ASSIGNMENT_OP
+   - INCREMENT_OP
+   - DECREMENT_OP
+   - PUNCTUATOR
+   - SINGLE_LINE_COMMENT (tracked but not output)
+   - MULTI_LINE_COMMENT (tracked but not output)
+   - WHITESPACE (skipped)
+   - ERROR
+   - EOF
+
+================================================================================
+                          SYMBOL TABLE ENTRIES
+================================================================================
+
+For each identifier, the symbol table stores:
+   - Identifier Name
+   - Type (currently "identifier", extensible for type inference)
+   - First Occurrence (line number)
+   - Frequency (number of appearances)
+
+================================================================================
+                            ERROR HANDLING
+================================================================================
+
+Lexical Errors Detected:
+   1. Invalid characters (not part of language alphabet)
+   2. Malformed integer literals
+   3. Malformed floating-point literals (wrong decimal count, missing parts)
+   4. Unterminated string literals
+   5. Unterminated character literals
+   6. Invalid character literals (empty, multiple characters)
+   7. Invalid identifiers (wrong starting character, exceeds length)
+   8. Unclosed multi-line comments
+   9. Invalid escape sequences in strings/characters
+
+Error Report Format:
+   [ERROR_TYPE] Line X, Col Y: 'lexeme' - description
+
+Error Recovery:
+   - Skip invalid character and continue scanning
+   - Report all errors found in the source
+   - Do not halt on first error
+
+================================================================================
+                              EXAMPLES
+================================================================================
+
+Example 1: Simple Program
+--------------------------
+start
+    declare Counter;
+    Counter = 0;
+    
+    loop Counter < 10
+        output Counter;
+        Counter++;
+    
+finish
+
+Tokens Generated:
+<KEYWORD, "start", Line: 1, Col: 1>
+<KEYWORD, "declare", Line: 2, Col: 5>
+<IDENTIFIER, "Counter", Line: 2, Col: 13>
+<PUNCTUATOR, ";", Line: 2, Col: 20>
+<IDENTIFIER, "Counter", Line: 3, Col: 5>
+<ASSIGNMENT_OP, "=", Line: 3, Col: 13>
+<INTEGER_LITERAL, "0", Line: 3, Col: 15>
+<PUNCTUATOR, ";", Line: 3, Col: 16>
+... (continued)
+
+
+Example 2: Function Definition
+-------------------------------
+function Calculate_sum(A, B)
+    declare Result;
+    Result = A + B;
+    return Result;
+
+Tokens: KEYWORD(function), IDENTIFIER(Calculate_sum), PUNCTUATOR((), 
+        IDENTIFIER(A), PUNCTUATOR(,), IDENTIFIER(B), PUNCTUATOR()), ...
+
+
+Example 3: Complex Expression
+------------------------------
+Result = X ** 2 + Y ** 2;
+
+Tokens: IDENTIFIER(Result), ASSIGNMENT_OP(=), IDENTIFIER(X), 
+        ARITHMETIC_OP(**), INTEGER_LITERAL(2), ARITHMETIC_OP(+), 
+        IDENTIFIER(Y), ARITHMETIC_OP(**), INTEGER_LITERAL(2), PUNCTUATOR(;)
+
+================================================================================
+                        END OF GRAMMAR SPECIFICATION
+================================================================================

@@ -1,0 +1,128 @@
+## Test File 1: All Valid Tokens
+## Testing keywords, identifiers, literals, operators, and punctuators
+
+start
+    ## Keywords test
+    declare Counter;
+    declare Sum;
+    declare Average;
+    
+    ## Integer literals
+    Counter = 42;
+    Sum = +100;
+    Average = -567;
+    
+    ## Floating-point literals
+    declare Pi;
+    declare E;
+    declare Temp;
+    Pi = 3.14159;
+    E = 2.718281;
+    Temp = -0.123456;
+    
+    ## Scientific notation
+    declare Big_number;
+    declare Small_number;
+    Big_number = 1.5e10;
+    Small_number = 2.0E-3;
+    
+    ## Boolean literals
+    declare Is_valid;
+    declare Is_done;
+    Is_valid = True;
+    Is_done = False;
+    
+    ## String literals
+    declare Message;
+    declare Greeting;
+    Message = "Hello, NEXUS!";
+    Greeting = "Welcome to compiler construction";
+    
+    ## String with escape sequences
+    declare Path;
+    declare Quote;
+    Path = "C:\\Users\\Student\\Documents\\file.txt";
+    Quote = "He said \"Hello\"";
+    
+    ## Character literals
+    declare Ch1;
+    declare Ch2;
+    Ch1 = 'A';
+    Ch2 = 'z';
+    
+    ## Arithmetic operations
+    Sum = Counter + 10;
+    Sum = Counter - 5;
+    Sum = Counter * 2;
+    Sum = Counter / 3;
+    Sum = Counter % 4;
+    Sum = Counter ** 2;
+    
+    ## Relational operations
+    condition Counter == 10
+        output "Equal";
+    else
+        output "Not equal";
+    
+    condition Counter != 5
+        output "Not equal";
+    
+    condition Counter < 100
+        output "Less than";
+    
+    condition Counter > 0
+        output "Greater than";
+    
+    condition Counter <= 50
+        output "Less or equal";
+    
+    condition Counter >= 10
+        output "Greater or equal";
+    
+    ## Logical operations
+    condition Is_valid && Is_done
+        output "Both true";
+    
+    condition Is_valid || Is_done
+        output "At least one true";
+    
+    condition !Is_valid
+        output "Not valid";
+    
+    ## Assignment operations
+    Counter = 0;
+    Counter += 5;
+    Counter -= 2;
+    Counter *= 3;
+    Counter /= 2;
+    
+    ## Increment and decrement
+    Counter++;
+    Counter--;
+    
+    ## Loop with function
+    function Calculate_sum(Num1, Num2)
+        declare Result;
+        Result = Num1 + Num2;
+        return Result;
+    
+    loop Counter < 10
+        output Counter;
+        Counter++;
+        
+        condition Counter == 5
+            break;
+        
+        condition Counter == 3
+            continue;
+    
+    ## Array-like syntax with punctuators
+    declare Numbers[10];
+    Numbers[0] = 1;
+    Numbers[1] = 2;
+    
+    ## Input and output
+    input Counter;
+    output Counter;
+    
+finish

@@ -1,0 +1,129 @@
+## Test File 5: Comments Testing
+## This file tests single-line and multi-line comments
+
+## Single-line comment at the start
+start
+
+    ## Variable declarations with comments
+    declare Counter;  ## This is an inline comment
+    declare Sum;      ## Another inline comment
+    declare Product;
+    
+    ## Initialize variables
+    Counter = 0;
+    Sum = 0;
+    Product = 1;
+    
+    #* This is a multi-line comment
+       that spans multiple lines
+       and should be completely ignored
+       by the scanner *#
+    
+    ## Loop with comments inside
+    loop Counter < 10
+        Sum += Counter;     ## Add to sum
+        Product *= Counter; ## Multiply product
+        Counter++;          ## Increment counter
+        
+        #* Nested comment in loop
+           This should also be ignored *#
+        
+        output Sum;
+        output Product;
+    
+    ## Function with extensive comments
+    #* 
+       Function: Calculate_factorial
+       Purpose: Calculate factorial of a number
+       Parameters: N - the number
+       Returns: Factorial of N
+    *#
+    function Calculate_factorial(N)
+        declare Result;
+        declare I;
+        
+        Result = 1;  ## Initialize result
+        I = 1;       ## Initialize counter
+        
+        ## Main calculation loop
+        loop I <= N
+            Result *= I;  ## Multiply result by current number
+            I++;          ## Move to next number
+        
+        ## Return the final result
+        return Result;
+    
+    ## Multiple single-line comments in sequence
+    ## Comment line 1
+    ## Comment line 2
+    ## Comment line 3
+    ## Comment line 4
+    
+    declare Test1;
+    declare Test2;
+    
+    ## Comment before assignment
+    Test1 = 100;
+    Test2 = 200;  ## Comment after assignment
+    
+    #* Multi-line comment with special characters
+       !@#$%^&*()_+-={}[]|:;"'<>,.?/
+       These should all be ignored
+    *#
+    
+    ## Testing comment with operators
+    declare X;
+    declare Y;
+    X = 10; ## X = 5 + 5
+    Y = 20; ## Y = 10 * 2
+    
+    #* Comment with code-like content
+       declare Fake_var;
+       Fake_var = 999;
+       This should not be executed
+    *#
+    
+    ## Condition with comments
+    condition X < Y  ## Compare X and Y
+        output "X is less than Y";  ## Output message
+    else
+        output "X is not less than Y";
+    
+    #*
+    Multi-line comment
+    with varying indentation
+        and different spacing
+            should still work fine
+    *#
+    
+    ## Multiple multi-line comments
+    #* First multi-line comment *#
+    #* Second multi-line comment *#
+    #* Third multi-line comment *#
+    
+    declare Final_var;
+    Final_var = 42;
+    
+    #* Comment with nested asterisks
+       Some text * with * asterisks
+       More text ** double asterisks
+       Still inside comment
+    *#
+    
+    ## Edge case: Comment-like patterns in strings
+    declare Comment_string;
+    Comment_string = "This is not a ## comment";
+    output Comment_string;
+    
+    declare Multi_comment_string;
+    Multi_comment_string = "This is not a #* comment *# either";
+    output Multi_comment_string;
+    
+    ## Comment at the very end of a line with code ##
+    output Final_var;  ##
+    
+finish  ## End of program
+
+## Final comment after finish
+#* Final multi-line comment
+   End of test file *#

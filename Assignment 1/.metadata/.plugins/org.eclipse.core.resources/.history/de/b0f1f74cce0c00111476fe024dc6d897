@@ -1,0 +1,36 @@
+## Test File 3: String and Character Literals with Escape Sequences
+## Testing various escape sequences and special cases
+
+start
+    ## Basic strings
+    declare str1 = "Hello World";
+    output str1;
+
+    ## Strings with escapes
+    declare str2;
+    str2 = "She said \"Hi\"";     ## quote escape
+    output str2;
+
+    str2 = "C:\\Users\\File";     ## backslash escape
+    output str2;
+
+    str2 = "Line1\nLine2";        ## newline escape
+    output str2;
+
+    str2 = "Name:\tJohn";         ## tab escape
+    output str2;
+
+    str2 = "Line1\rLine2";        ## carriage return
+    output str2;
+
+    ## Character literals
+    declare ch1; declare ch2; declare ch3;
+    ch1 = 'A'; ch2 = '\''; ch3 = '\\';
+    output ch1; output ch2; output ch3;
+
+    ## Special strings
+    declare alpha; declare digits;
+    alpha = "ABCabc"; digits = "0123456789";
+    output alpha; output digits;
+
+finish

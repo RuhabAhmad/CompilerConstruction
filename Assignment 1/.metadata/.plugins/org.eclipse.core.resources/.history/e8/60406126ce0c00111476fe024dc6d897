@@ -1,0 +1,65 @@
+## Test File 3: String and Character Literals with Escape Sequences
+## Testing various escape sequences and special cases
+
+start
+    ## Basic strings
+    declare s1;
+    s1 = "Hello World";
+    output s1;
+
+    ## Strings with escapes
+    declare s2;
+    declare s3;
+    declare s4;
+    declare s5;
+
+    s2 = "She said \"Hi\"";           ## Escaped quote
+    s3 = "C:\\Users\\Student\\file";  ## Escaped backslash
+    s4 = "Line1\nLine2";              ## Newline
+    s5 = "Col1\tCol2";                ## Tab
+
+    output s2;
+    output s3;
+    output s4;
+    output s5;
+
+    ## Character literals
+    declare c1;
+    declare c2;
+    declare c3;
+    declare c4;
+
+    c1 = 'A';
+    c2 = '\'';
+    c3 = '\\';
+    c4 = '\n';
+
+    output c1;
+    output c2;
+    output c3;
+    output c4;
+
+    ## Combined escapes in strings
+    declare s6;
+    s6 = "Path: \"C:\\App\"\nStatus: OK\tDone";
+    output s6;
+
+    ## Special printable characters
+    declare letters;
+    declare digits;
+
+    letters = "abcXYZ";
+    digits  = "0123";
+
+    output letters;
+    output digits;
+
+finish
+
+#* 
+   Covers: 
+   - Strings & chars
+   - Escape sequences: \", \\, \n, \t, \r
+   - Mixed/combined escapes
+   - Special chars and basic ranges
+*#
