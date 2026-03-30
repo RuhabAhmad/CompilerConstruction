@@ -1,0 +1,74 @@
+LL(1) Stack Parsing Trace
+
+=== Input Line 1 ===
+Input: id + id * id
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | id + id * id $                           | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | id + id * id $                           | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | id + id * id $                           | Expand: Factor -> id
+4      | $ Expr' Term' id                         | id + id * id $                           | Match 'id'
+5      | $ Expr' Term'                            | + id * id $                              | Expand: Term' -> epsilon
+6      | $ Expr'                                  | + id * id $                              | Expand: Expr' -> + Term Expr'
+7      | $ Expr' Term +                           | + id * id $                              | Match '+'
+8      | $ Expr' Term                             | id * id $                                | Expand: Term -> Factor Term'
+9      | $ Expr' Term' Factor                     | id * id $                                | Expand: Factor -> id
+10     | $ Expr' Term' id                         | id * id $                                | Match 'id'
+11     | $ Expr' Term'                            | * id $                                   | Expand: Term' -> * Factor Term'
+12     | $ Expr' Term' Factor *                   | * id $                                   | Match '*'
+13     | $ Expr' Term' Factor                     | id $                                     | Expand: Factor -> id
+14     | $ Expr' Term' id                         | id $                                     | Match 'id'
+15     | $ Expr' Term'                            | $                                        | Expand: Term' -> epsilon
+16     | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+17     | $                                        | $                                        | ACCEPT
+Result: ACCEPTED
+
+=== Input Line 2 ===
+Input: ( id + id ) * id
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | ( id + id ) * id $                       | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | ( id + id ) * id $                       | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | ( id + id ) * id $                       | Expand: Factor -> ( Expr )
+4      | $ Expr' Term' ) Expr (                   | ( id + id ) * id $                       | Match '('
+5      | $ Expr' Term' ) Expr                     | id + id ) * id $                         | Expand: Expr -> Term Expr'
+6      | $ Expr' Term' ) Expr' Term               | id + id ) * id $                         | Expand: Term -> Factor Term'
+7      | $ Expr' Term' ) Expr' Term' Factor       | id + id ) * id $                         | Expand: Factor -> id
+8      | $ Expr' Term' ) Expr' Term' id           | id + id ) * id $                         | Match 'id'
+9      | $ Expr' Term' ) Expr' Term'              | + id ) * id $                            | Expand: Term' -> epsilon
+10     | $ Expr' Term' ) Expr'                    | + id ) * id $                            | Expand: Expr' -> + Term Expr'
+11     | $ Expr' Term' ) Expr' Term +             | + id ) * id $                            | Match '+'
+12     | $ Expr' Term' ) Expr' Term               | id ) * id $                              | Expand: Term -> Factor Term'
+13     | $ Expr' Term' ) Expr' Term' Factor       | id ) * id $                              | Expand: Factor -> id
+14     | $ Expr' Term' ) Expr' Term' id           | id ) * id $                              | Match 'id'
+15     | $ Expr' Term' ) Expr' Term'              | ) * id $                                 | Expand: Term' -> epsilon
+16     | $ Expr' Term' ) Expr'                    | ) * id $                                 | Expand: Expr' -> epsilon
+17     | $ Expr' Term' )                          | ) * id $                                 | Match ')'
+18     | $ Expr' Term'                            | * id $                                   | Expand: Term' -> * Factor Term'
+19     | $ Expr' Term' Factor *                   | * id $                                   | Match '*'
+20     | $ Expr' Term' Factor                     | id $                                     | Expand: Factor -> id
+21     | $ Expr' Term' id                         | id $                                     | Match 'id'
+22     | $ Expr' Term'                            | $                                        | Expand: Term' -> epsilon
+23     | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+24     | $                                        | $                                        | ACCEPT
+Result: ACCEPTED
+
+=== Input Line 3 ===
+Input: id * id + id
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | id * id + id $                           | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | id * id + id $                           | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | id * id + id $                           | Expand: Factor -> id
+4      | $ Expr' Term' id                         | id * id + id $                           | Match 'id'
+5      | $ Expr' Term'                            | * id + id $                              | Expand: Term' -> * Factor Term'
+6      | $ Expr' Term' Factor *                   | * id + id $                              | Match '*'
+7      | $ Expr' Term' Factor                     | id + id $                                | Expand: Factor -> id
+8      | $ Expr' Term' id                         | id + id $                                | Match 'id'
+9      | $ Expr' Term'                            | + id $                                   | Expand: Term' -> epsilon
+10     | $ Expr'                                  | + id $                                   | Expand: Expr' -> + Term Expr'
+11     | $ Expr' Term +                           | + id $                                   | Match '+'
+12     | $ Expr' Term                             | id $                                     | Expand: Term -> Factor Term'
+13     | $ Expr' Term' Factor                     | id $                                     | Expand: Factor -> id
+14     | $ Expr' Term' id                         | id $                                     | Match 'id'
+15     | $ Expr' Term'                            | $                                        | Expand: Term' -> epsilon
+16     | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+17     | $                                        | $                                        | ACCEPT
+Result: ACCEPTED
