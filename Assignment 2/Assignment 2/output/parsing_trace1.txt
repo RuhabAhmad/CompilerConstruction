@@ -1,0 +1,63 @@
+LL(1) Stack Parsing Trace
+
+=== Input Line 1 ===
+Input: id
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | id $                                     | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | id $                                     | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | id $                                     | Expand: Factor -> id
+4      | $ Expr' Term' id                         | id $                                     | Match 'id'
+5      | $ Expr' Term'                            | $                                        | Expand: Term' -> epsilon
+6      | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+7      | $                                        | $                                        | ACCEPT
+Result: ACCEPTED
+
+=== Input Line 2 ===
+Input: ( id )
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | ( id ) $                                 | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | ( id ) $                                 | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | ( id ) $                                 | Expand: Factor -> ( Expr )
+4      | $ Expr' Term' ) Expr (                   | ( id ) $                                 | Match '('
+5      | $ Expr' Term' ) Expr                     | id ) $                                   | Expand: Expr -> Term Expr'
+6      | $ Expr' Term' ) Expr' Term               | id ) $                                   | Expand: Term -> Factor Term'
+7      | $ Expr' Term' ) Expr' Term' Factor       | id ) $                                   | Expand: Factor -> id
+8      | $ Expr' Term' ) Expr' Term' id           | id ) $                                   | Match 'id'
+9      | $ Expr' Term' ) Expr' Term'              | ) $                                      | Expand: Term' -> epsilon
+10     | $ Expr' Term' ) Expr'                    | ) $                                      | Expand: Expr' -> epsilon
+11     | $ Expr' Term' )                          | ) $                                      | Match ')'
+12     | $ Expr' Term'                            | $                                        | Expand: Term' -> epsilon
+13     | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+14     | $                                        | $                                        | ACCEPT
+Result: ACCEPTED
+
+=== Input Line 3 ===
+Input: ( )
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | ( ) $                                    | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | ( ) $                                    | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | ( ) $                                    | Expand: Factor -> ( Expr )
+4      | $ Expr' Term' ) Expr (                   | ( ) $                                    | Match '('
+[Parse Error] line=3, column=2, type=EmptyTableEntry, expected=(, id, found=)
+5      | $ Expr' Term' ) Expr                     | ) $                                      | Panic recovery: pop Expr (sync by FOLLOW)
+6      | $ Expr' Term' )                          | ) $                                      | Match ')'
+7      | $ Expr' Term'                            | $                                        | Expand: Term' -> epsilon
+8      | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+9      | $                                        | $                                        | ACCEPT
+Result: COMPLETED WITH 1 ERROR(S)
+
+=== Input Line 4 ===
+Input: id +
+Step   | Stack(bottom->top)                       | Remaining Input                          | Action
+1      | $ Expr                                   | id + $                                   | Expand: Expr -> Term Expr'
+2      | $ Expr' Term                             | id + $                                   | Expand: Term -> Factor Term'
+3      | $ Expr' Term' Factor                     | id + $                                   | Expand: Factor -> id
+4      | $ Expr' Term' id                         | id + $                                   | Match 'id'
+5      | $ Expr' Term'                            | + $                                      | Expand: Term' -> epsilon
+6      | $ Expr'                                  | + $                                      | Expand: Expr' -> + Term Expr'
+7      | $ Expr' Term +                           | + $                                      | Match '+'
+[Parse Error] line=4, column=3, type=EmptyTableEntry, expected=(, id, found=$
+8      | $ Expr' Term                             | $                                        | Panic recovery: pop Term (sync by FOLLOW)
+9      | $ Expr'                                  | $                                        | Expand: Expr' -> epsilon
+10     | $                                        | $                                        | ACCEPT
+Result: COMPLETED WITH 1 ERROR(S)

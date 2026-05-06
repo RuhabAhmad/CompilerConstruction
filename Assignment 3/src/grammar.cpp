@@ -41,7 +41,7 @@ void Grammar::loadFromFile(const std::string& filename) {
             firstLine = false;
         }
 
-        // Split alternatives by '|' [cite: 38]
+        // Split alternatives by 
         std::stringstream ss(rhs_str);
         std::string alt;
         while (std::getline(ss, alt, '|')) {

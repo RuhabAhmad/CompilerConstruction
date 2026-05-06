@@ -2,7 +2,7 @@
 
 ## Team Members
 * Ruhab Ahmad (23I-0559)
-* [Partner Name] ([Partner Roll Number])
+* Hasan Altaf (23I-0698)
 
 ## Programming Language
 * C++ (Standard: C++17)

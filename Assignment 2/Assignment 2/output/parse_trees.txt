@@ -1,0 +1,32 @@
+Parse Trees (successful inputs only)
+
+=== Parse Tree for Input Line 1 ===
+Input: id
+Expr
+  Term
+    Factor
+      id
+    Term'
+      epsilon
+  Expr'
+    epsilon
+
+=== Parse Tree for Input Line 2 ===
+Input: ( id )
+Expr
+  Term
+    Factor
+      (
+      Expr
+        Term
+          Factor
+            id
+          Term'
+            epsilon
+        Expr'
+          epsilon
+      )
+    Term'
+      epsilon
+  Expr'
+    epsilon
